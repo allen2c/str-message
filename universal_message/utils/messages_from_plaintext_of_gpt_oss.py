@@ -26,7 +26,7 @@ class OSSMetadata(typing.TypedDict, total=False):
 
 
 def messages_from_plaintext_of_gpt_oss(text: str) -> typing.List["Message"]:
-    """Create messages from text of OSS."""
+    """Parse plaintext conversation format from GPT/OSS projects."""
     from universal_message import Message
 
     text = text.strip()
