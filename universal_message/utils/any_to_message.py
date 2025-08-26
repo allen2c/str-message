@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
 
 
 def from_any(data: "SUPPORTED_MESSAGE_TYPES") -> "Message":
-    """Create message from various input types."""
+    """Convert various data types into Message objects."""
     from universal_message import Message
     from universal_message.utils.chat_cmpl_content_part_to_str import (
         chat_cmpl_content_part_to_str,

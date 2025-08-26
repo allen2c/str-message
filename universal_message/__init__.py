@@ -36,6 +36,7 @@ from openai.types.responses.response_input_item_param import (
     FunctionCallOutput,
     ResponseInputItemParam,
 )
+from openai.types.shared.function_definition import FunctionDefinition
 from rich.pretty import pretty_repr
 from str_or_none import str_or_none
 
@@ -61,6 +62,7 @@ SUPPORTED_MESSAGE_TYPES: typing.TypeAlias = typing.Union[
     pydantic.BaseModel,
     OPENAI_MESSAGE_PARAM_TYPES,
 ]
+ListFunctionDefinitionAdapter = pydantic.TypeAdapter(typing.List[FunctionDefinition])
 
 
 class Message(pydantic.BaseModel):
@@ -253,6 +255,15 @@ def messages_from_any_items(
     return [Message.from_any(item) for item in items]
 
 
+def messages_from_plaintext_of_gpt_oss(text: str) -> typing.List[Message]:
+    """Parse plaintext conversation format from GPT/OSS projects."""
+    from universal_message.utils.messages_from_plaintext_of_gpt_oss import (
+        messages_from_plaintext_of_gpt_oss,
+    )
+
+    return messages_from_plaintext_of_gpt_oss(text)
+
+
 def messages_to_instructions(
     messages: typing.List[Message],
     *,
@@ -260,7 +271,7 @@ def messages_to_instructions(
     tz: zoneinfo.ZoneInfo | str | None = None,
     sep: str = "\n\n",
 ) -> str:
-    """Format multiple messages as readable instructions."""
+    """Format messages into readable instructions with optional timestamps."""
     return sep.join(
         message.to_instructions(with_datetime=with_datetime, tz=tz)
         for message in messages
@@ -270,12 +281,51 @@ def messages_to_instructions(
 def messages_to_responses_input_items(
     messages: typing.List[Message],
 ) -> typing.List[ResponseInputItemParam]:
-    """Convert messages to OpenAI responses API format."""
+    """Convert Message objects to OpenAI responses API input item parameters."""
     return [message.to_responses_input_item() for message in messages]
 
 
 def messages_to_chat_cmpl_messages(
     messages: typing.List[Message],
 ) -> typing.List[ChatCompletionMessageParam]:
-    """Convert messages to OpenAI chat completion format."""
+    """Convert Message objects to OpenAI chat completion message parameters."""
     return [message.to_chat_cmpl_message() for message in messages]
+
+
+def messages_to_sharegpt(
+    messages: typing.List[Message],
+    media_dir: pathlib.Path | str | None = None,
+    *,
+    tool_definitions: typing.List[FunctionDefinition] | None = None,
+    tools_column: str = "tools",
+    images_column: str = "images",
+    videos_column: str = "videos",  # Not implemented
+    audios_column: str = "audios",
+    role_tag: str = "role",
+    content_tag: str = "content",
+    user_tag: str = "user",
+    assistant_tag: str = "assistant",
+    observation_tag: str = "observation",
+    function_tag: str = "function_call",
+    system_tag: str = "system",
+    messages_tag: str = "messages",
+) -> dict:
+    """Convert messages to ShareGPT format with media extraction."""
+    from universal_message.utils.messages_to_sharegpt import messages_to_sharegpt
+
+    return messages_to_sharegpt(
+        messages,
+        media_dir=media_dir,
+        tool_definitions=tool_definitions,
+        tools_column=tools_column,
+        images_column=images_column,
+        videos_column=videos_column,
+        audios_column=audios_column,
+        role_tag=role_tag,
+        content_tag=content_tag,
+        user_tag=user_tag,
+        assistant_tag=assistant_tag,
+        observation_tag=observation_tag,
+        function_tag=function_tag,
+        system_tag=system_tag,
+    )
