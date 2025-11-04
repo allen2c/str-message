@@ -6,8 +6,10 @@ dependencies = [
   "json-repair",
   "openai (>=1,<2)",
   "openai-agents (>=0.1.0,<1.0.0)",
+  "openai-harmony",
   "pydantic (>=2)",
   "str-or-none",
+  "tiktoken",
   "uuid-utils",
 ]
 description = "Any Message Could be a String, for LLM Usage"
