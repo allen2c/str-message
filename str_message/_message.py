@@ -1,14 +1,57 @@
+import abc
+import datetime
 import logging
+import textwrap
 import time
 import typing
+import zoneinfo
 
+import jinja2
 import pydantic
 import uuid_utils as uuid
+from rich.pretty import pretty_repr
 
 logger = logging.getLogger(__name__)
 
 
-class Message(pydantic.BaseModel):
+class MessageUtils(abc.ABC):
+    role: typing.Literal["user", "assistant", "system", "developer", "tool"]
+    content: str
+    created_at: int
+    metadata: typing.Optional[typing.Dict[str, str]]
+
+    def to_instructions(
+        self,
+        *,
+        with_datetime: bool = False,
+        tz: zoneinfo.ZoneInfo | str | None = None,
+        max_string: int = 600,
+    ) -> str:
+        """Format message as readable instructions."""
+        from str_message.utils.ensure_tz import ensure_tz
+
+        _role = self.role
+        _content = self.content
+
+        _dt: datetime.datetime | None = None
+        if with_datetime:
+            _dt = datetime.datetime.fromtimestamp(self.created_at, ensure_tz(tz))
+            _dt = _dt.replace(microsecond=0)
+        template = jinja2.Template(
+            textwrap.dedent(
+                """
+                [{% if dt %}{{ dt.strftime('%Y-%m-%dT%H:%M:%S') }} {% endif %}{{ role }}] {{ content }}
+                """  # noqa: E501
+            ).strip()
+        )
+        return template.render(
+            role=_role,
+            dt=_dt,
+            content=pretty_repr(_content, max_string=max_string),
+        ).strip()
+
+
+class Message(pydantic.BaseModel, MessageUtils):
     """A universal message format for AI interactions."""
 
     id: str = pydantic.Field(default_factory=lambda: str(uuid.uuid7()))
