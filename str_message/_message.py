@@ -84,6 +84,15 @@ class Message(pydantic.BaseModel, MessageUtils):
     created_at: int = pydantic.Field(default_factory=lambda: int(time.time()))
     metadata: typing.Optional[typing.Dict[str, str]] = None
 
+    @pydantic.model_validator(mode="after")
+    def warning_empty(self) -> typing.Self:
+        if not self.content:
+            if self.role == "assistant" and self.channel == "commentary":
+                pass
+            else:
+                logger.warning("Message content is empty")
+        return self
+
 
 class SystemMessage(Message):
     role: typing.Literal["system"] = "system"
