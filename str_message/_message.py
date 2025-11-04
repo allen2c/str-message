@@ -6,12 +6,37 @@ import time
 import typing
 import zoneinfo
 
+import durl
 import jinja2
 import pydantic
 import uuid_utils as uuid
+from openai.types.chat.chat_completion_message import ChatCompletionMessage
+from openai.types.chat.chat_completion_message_param import ChatCompletionMessageParam
+from openai.types.responses.response_input_item import ResponseInputItem
+from openai.types.responses.response_input_item_param import ResponseInputItemParam
+from openai.types.shared.function_definition import FunctionDefinition
 from rich.pretty import pretty_repr
 
 logger = logging.getLogger(__name__)
+
+
+OPENAI_MESSAGE_PARAM_TYPES: typing.TypeAlias = typing.Union[
+    ResponseInputItemParam, ChatCompletionMessageParam
+]
+OPENAI_MESSAGE_TYPES: typing.TypeAlias = typing.Union[
+    ResponseInputItem, ChatCompletionMessage
+]
+
+ANY_MESSAGE_TYPES: typing.TypeAlias = typing.Union[
+    "Message",
+    str,
+    durl.DataURL,
+    typing.Dict,
+    OPENAI_MESSAGE_PARAM_TYPES,
+    OPENAI_MESSAGE_TYPES,
+]
+ListFuncDefAdapter = pydantic.TypeAdapter(typing.List[FunctionDefinition])
+ResponseInputItemAdapter = pydantic.TypeAdapter(ResponseInputItem)
 
 
 class MessageUtils(abc.ABC):
@@ -49,6 +74,13 @@ class MessageUtils(abc.ABC):
             dt=_dt,
             content=pretty_repr(_content, max_string=max_string),
         ).strip()
+
+    @classmethod
+    def from_any(cls, data: ANY_MESSAGE_TYPES) -> "Message":
+        """Create message from various input types."""
+        from str_message.utils.message_from_any import message_from_any
+
+        return message_from_any(data)
 
 
 class Message(pydantic.BaseModel, MessageUtils):
