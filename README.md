@@ -15,7 +15,7 @@ pip install universal-message
 Create a message from a string:
 
 ```python
-import universal_message as um
+import str_message as um
 
 message = um.Message.from_any("Hello, world!")
 
@@ -27,7 +27,7 @@ print(message.to_instructions())
 Create a message from a dictionary:
 
 ```python
-import universal_message as um
+import str_message as um
 
 message = um.Message.from_any(
     {

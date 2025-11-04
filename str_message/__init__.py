@@ -1,4 +1,4 @@
-# universal_message/__init__.py
+# str_message/__init__.py
 import datetime
 import logging
 import pathlib
@@ -11,6 +11,7 @@ import agents
 import durl
 import jinja2
 import pydantic
+import uuid_utils as uuid
 from openai.types.chat.chat_completion_assistant_message_param import (
     ChatCompletionAssistantMessageParam,
 )
@@ -39,8 +40,6 @@ from openai.types.responses.response_input_item_param import (
 from openai.types.shared.function_definition import FunctionDefinition
 from rich.pretty import pretty_repr
 from str_or_none import str_or_none
-
-from ._id import generate_object_id
 
 __version__ = pathlib.Path(__file__).parent.joinpath("VERSION").read_text().strip()
 
@@ -89,7 +88,7 @@ class Message(pydantic.BaseModel):
     """
 
     # Optional fields
-    id: str = pydantic.Field(default_factory=generate_object_id)
+    id: str = pydantic.Field(default_factory=lambda: str(uuid.uuid7()))
     call_id: typing.Optional[str] = None
     tool_name: typing.Optional[str] = None
     arguments: typing.Optional[str] = None
@@ -126,13 +125,13 @@ class Message(pydantic.BaseModel):
     @classmethod
     def from_any(cls, data: SUPPORTED_MESSAGE_TYPES) -> "Message":
         """Create message from various input types."""
-        from universal_message.utils.any_to_message import from_any
+        from str_message.utils.any_to_message import from_any
 
         return from_any(data)
 
     @classmethod
     def from_plaintext_of_gpt_oss(cls, text: str) -> typing.List["Message"]:
-        from universal_message.utils.messages_from_plaintext_of_gpt_oss import (
+        from str_message.utils.messages_from_plaintext_of_gpt_oss import (
             messages_from_plaintext_of_gpt_oss,
         )
 
@@ -146,7 +145,7 @@ class Message(pydantic.BaseModel):
         max_string: int = 600,
     ) -> str:
         """Format message as readable instructions."""
-        from universal_message.utils.ensure_tz import ensure_tz
+        from str_message.utils.ensure_tz import ensure_tz
 
         _role = self.role
         _content = self.content
@@ -257,7 +256,7 @@ def messages_from_any_items(
 
 def messages_from_plaintext_of_gpt_oss(text: str) -> typing.List[Message]:
     """Parse plaintext conversation format from GPT/OSS projects."""
-    from universal_message.utils.messages_from_plaintext_of_gpt_oss import (
+    from str_message.utils.messages_from_plaintext_of_gpt_oss import (
         messages_from_plaintext_of_gpt_oss,
     )
 
@@ -311,7 +310,7 @@ def messages_to_sharegpt(
     messages_tag: str = "messages",
 ) -> dict:
     """Convert messages to ShareGPT format with media extraction."""
-    from universal_message.utils.messages_to_sharegpt import messages_to_sharegpt
+    from str_message.utils.messages_to_sharegpt import messages_to_sharegpt
 
     return messages_to_sharegpt(
         messages,

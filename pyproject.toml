@@ -8,21 +8,22 @@ dependencies = [
   "openai-agents (>=0.1.0,<1.0.0)",
   "pydantic (>=2)",
   "str-or-none",
+  "uuid-utils",
 ]
-description = "Message for Universal LLM Usage"
+description = "Any Message Could be a String, for LLM Usage"
 license = { text = "MIT" }
-name = "universal-message"
+name = "str-message"
 readme = "README.md"
 requires-python = ">=3.11,<4"
-version = "0.5.0"
+version = "0.6.0"
 
 [project.urls]
-Homepage = "https://github.com/allen2c/universal-message"
-"PyPI" = "https://pypi.org/project/universal-message/"
-Repository = "https://github.com/allen2c/universal-message"
+Homepage = "https://github.com/allen2c/str-message"
+"PyPI" = "https://pypi.org/project/str-message/"
+Repository = "https://github.com/allen2c/str-message"
 
 [tool.poetry]
-packages = [{ include = "universal_message" }]
+packages = [{ include = "str_message" }]
 
 [tool.poetry.extras]
 all = []

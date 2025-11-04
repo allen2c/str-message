@@ -1,4 +1,4 @@
-# universal_message/utils/messages_to_sharegpt.py
+# str_message/utils/messages_to_sharegpt.py
 import hashlib
 import logging
 import pathlib
@@ -10,7 +10,7 @@ from openai.types.shared.function_definition import FunctionDefinition
 from rich.pretty import pretty_repr
 
 if typing.TYPE_CHECKING:
-    from universal_message import Message
+    from str_message import Message
 
 logger = logging.getLogger(__name__)
 

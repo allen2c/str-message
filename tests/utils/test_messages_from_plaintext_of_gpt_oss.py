@@ -2,8 +2,8 @@ import json
 import textwrap
 import typing
 
-from universal_message import Message
-from universal_message.utils.messages_from_plaintext_of_gpt_oss import (
+from str_message import Message
+from str_message.utils.messages_from_plaintext_of_gpt_oss import (
     messages_from_plaintext_of_gpt_oss,
 )
 

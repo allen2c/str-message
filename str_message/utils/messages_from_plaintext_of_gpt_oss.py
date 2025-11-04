@@ -1,4 +1,4 @@
-# universal_message/utils/messages_from_text_of_oss.py
+# str_message/utils/messages_from_text_of_oss.py
 import re
 import textwrap
 import typing
@@ -8,7 +8,7 @@ import pydantic
 from openai.types.shared.function_definition import FunctionDefinition
 
 if typing.TYPE_CHECKING:
-    from universal_message import Message
+    from str_message import Message
 
 
 PRIMITIVE_TYPES: typing.TypeAlias = typing.Union[str, int, float, bool, None]
@@ -27,7 +27,7 @@ class OSSMetadata(typing.TypedDict, total=False):
 
 def messages_from_plaintext_of_gpt_oss(text: str) -> typing.List["Message"]:
     """Parse plaintext conversation format from GPT/OSS projects."""
-    from universal_message import Message
+    from str_message import Message
 
     text = text.strip()
     if not text:

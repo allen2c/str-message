@@ -7,19 +7,19 @@ from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.responses.response_output_text_param import ResponseOutputTextParam
 
 if typing.TYPE_CHECKING:
-    from universal_message import SUPPORTED_MESSAGE_TYPES, Message
+    from str_message import SUPPORTED_MESSAGE_TYPES, Message
 
 
 def from_any(data: "SUPPORTED_MESSAGE_TYPES") -> "Message":
     """Convert various data types into Message objects."""
-    from universal_message import Message
-    from universal_message.utils.chat_cmpl_content_part_to_str import (
+    from str_message import Message
+    from str_message.utils.chat_cmpl_content_part_to_str import (
         chat_cmpl_content_part_to_str,
     )
-    from universal_message.utils.response_input_content_to_str import (
+    from str_message.utils.response_input_content_to_str import (
         response_input_content_to_str,
     )
-    from universal_message.utils.return_openai_message import (
+    from str_message.utils.return_openai_message import (
         return_chat_cmpl_assistant_message,
         return_chat_cmpl_developer_message,
         return_chat_cmpl_function_message,

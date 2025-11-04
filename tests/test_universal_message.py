@@ -1,5 +1,5 @@
-# tests/test_universal_message.py
-"""Test universal_message.Message compatibility with OpenAI agents and chat completions.
+# tests/test_str_message.py
+"""Test str_message.Message compatibility with OpenAI agents and chat completions.
 Tests message conversion between different formats and tool usage workflows.
 Each test validates LLM interactions with function calls and responses.
 """
@@ -11,7 +11,7 @@ import openai
 import pytest
 from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
 
-import universal_message as um
+import str_message as um
 
 
 @pytest.mark.asyncio

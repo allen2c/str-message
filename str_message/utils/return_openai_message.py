@@ -1,4 +1,4 @@
-# universal_message/utils/return_openai_message.py
+# str_message/utils/return_openai_message.py
 import typing
 
 from openai.types.chat.chat_completion_assistant_message_param import (
@@ -61,7 +61,7 @@ from openai.types.responses.response_reasoning_item_param import (
 )
 
 if typing.TYPE_CHECKING:
-    from universal_message import OPENAI_MESSAGE_PARAM_TYPES
+    from str_message import OPENAI_MESSAGE_PARAM_TYPES
 
 
 __all__ = [
@@ -80,7 +80,7 @@ def return_response_easy_input_message(
     message: "OPENAI_MESSAGE_PARAM_TYPES",
 ) -> EasyInputMessageParam | None:
     """Returns an EasyInputMessageParam if the message is a valid easy input message."""
-    from universal_message.utils.is_response_input_message_content_list_param import (
+    from str_message.utils.is_response_input_message_content_list_param import (
         is_response_input_message_content_list_param,
     )
 
@@ -111,7 +111,7 @@ def return_response_input_message(
     message: "OPENAI_MESSAGE_PARAM_TYPES",
 ) -> ResponseInputMessageParam | None:
     """Returns a ResponseInputMessageParam if the message is a valid input message."""
-    from universal_message.utils.is_response_input_message_content_list_param import (
+    from str_message.utils.is_response_input_message_content_list_param import (
         is_response_input_message_content_list_param,
     )
 
@@ -138,7 +138,7 @@ def return_response_output_message(
     message: "OPENAI_MESSAGE_PARAM_TYPES",
 ) -> ResponseOutputMessageParam | None:
     """Returns a ResponseOutputMessageParam if the message is a valid output message."""
-    from universal_message.utils.is_response_output_text_param import (
+    from str_message.utils.is_response_output_text_param import (
         is_response_output_text_param,
     )
 

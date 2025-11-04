@@ -6,13 +6,13 @@ def is_response_input_message_content_list_param(
 ) -> bool:
     """Checks if content is a list of response input message content parts."""
 
-    from universal_message.utils.is_response_input_file_param import (
+    from str_message.utils.is_response_input_file_param import (
         is_response_input_file_param,
     )
-    from universal_message.utils.is_response_input_image_param import (
+    from str_message.utils.is_response_input_image_param import (
         is_response_input_image_param,
     )
-    from universal_message.utils.is_response_input_text_param import (
+    from str_message.utils.is_response_input_text_param import (
         is_response_input_text_param,
     )
 
