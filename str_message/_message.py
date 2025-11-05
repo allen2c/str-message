@@ -203,6 +203,11 @@ class UserMessage(Message):
     channel: typing.Literal[None] = None
 
 
+class AssistantMessage(Message):
+    role: typing.Literal["assistant"] = "assistant"
+    channel: typing.Literal["final"] = "final"
+
+
 class ReasoningMessage(Message):
     role: typing.Literal["assistant"] = "assistant"
     content: str = ""
@@ -242,20 +247,22 @@ class ToolCallOutputMessage(Message):
 
 
 MessageTypes: typing.TypeAlias = typing.Union[
-    Message,
-    SystemMessage,
+    AssistantMessage,
     DeveloperMessage,
-    UserMessage,
+    Message,
     ReasoningMessage,
+    SystemMessage,
     ToolCallMessage,
     ToolCallOutputMessage,
+    UserMessage,
 ]
 ALL_MESSAGE_TYPES = (
-    Message,
-    SystemMessage,
+    AssistantMessage,
     DeveloperMessage,
-    UserMessage,
+    Message,
     ReasoningMessage,
+    SystemMessage,
     ToolCallMessage,
     ToolCallOutputMessage,
+    UserMessage,
 )

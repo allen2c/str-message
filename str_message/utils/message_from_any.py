@@ -103,6 +103,12 @@ def message_from_any(data: ANY_MESSAGE_TYPES) -> MessageTypes:
             pass  # Not a ChatCompletionMessage
 
         try:
+            chat_cmpl_input_message = ChatCompletionMessageAdapter.validate_python(data)
+            return message_from_chat_cmpl_input_message(chat_cmpl_input_message)
+        except pydantic.ValidationError:
+            pass  # Not a ChatCompletionInputMessage
+
+        try:
             response_input_item = ResponseInputItemAdapter.validate_python(data)
             return message_from_response_input_item(response_input_item)
         except pydantic.ValidationError:
