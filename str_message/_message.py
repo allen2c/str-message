@@ -12,8 +12,43 @@ import pydantic
 import uuid_utils as uuid
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.chat.chat_completion_message_param import ChatCompletionMessageParam
-from openai.types.responses.response_input_item import ResponseInputItem
+from openai.types.responses.easy_input_message import EasyInputMessage
+from openai.types.responses.response_code_interpreter_tool_call import (
+    ResponseCodeInterpreterToolCall,
+)
+from openai.types.responses.response_computer_tool_call import ResponseComputerToolCall
+from openai.types.responses.response_custom_tool_call import ResponseCustomToolCall
+from openai.types.responses.response_custom_tool_call_output import (
+    ResponseCustomToolCallOutput,
+)
+from openai.types.responses.response_file_search_tool_call import (
+    ResponseFileSearchToolCall,
+)
+from openai.types.responses.response_function_tool_call import ResponseFunctionToolCall
+from openai.types.responses.response_function_web_search import (
+    ResponseFunctionWebSearch,
+)
+from openai.types.responses.response_input_item import (
+    ComputerCallOutput,
+    FunctionCallOutput,
+    ImageGenerationCall,
+    ItemReference,
+    LocalShellCall,
+    LocalShellCallOutput,
+    McpApprovalRequest,
+    McpApprovalResponse,
+    McpCall,
+    McpListTools,
+)
+from openai.types.responses.response_input_item import (
+    Message as ResponseInputItemMessage,
+)
+from openai.types.responses.response_input_item import (
+    ResponseInputItem,
+)
 from openai.types.responses.response_input_item_param import ResponseInputItemParam
+from openai.types.responses.response_output_message import ResponseOutputMessage
+from openai.types.responses.response_reasoning_item import ResponseReasoningItem
 from openai.types.shared.function_definition import FunctionDefinition
 from rich.pretty import pretty_repr
 
@@ -36,6 +71,29 @@ ANY_MESSAGE_TYPES: typing.TypeAlias = typing.Union[
     OPENAI_MESSAGE_TYPES,
 ]
 ListFuncDefAdapter = pydantic.TypeAdapter(typing.List[FunctionDefinition])
+ResponseInputItemModels = (
+    EasyInputMessage,
+    ResponseInputItemMessage,
+    ResponseOutputMessage,
+    ResponseFileSearchToolCall,
+    ResponseComputerToolCall,
+    ComputerCallOutput,
+    ResponseFunctionWebSearch,
+    ResponseFunctionToolCall,
+    FunctionCallOutput,
+    ResponseReasoningItem,
+    ImageGenerationCall,
+    ResponseCodeInterpreterToolCall,
+    LocalShellCall,
+    LocalShellCallOutput,
+    McpListTools,
+    McpApprovalRequest,
+    McpApprovalResponse,
+    McpCall,
+    ResponseCustomToolCallOutput,
+    ResponseCustomToolCall,
+    ItemReference,
+)
 ResponseInputItemAdapter = pydantic.TypeAdapter(ResponseInputItem)
 
 
@@ -182,6 +240,7 @@ class ToolCallOutputMessage(Message):
 
 
 MessageTypes: typing.TypeAlias = typing.Union[
+    Message,
     SystemMessage,
     DeveloperMessage,
     UserMessage,
@@ -190,6 +249,7 @@ MessageTypes: typing.TypeAlias = typing.Union[
     ToolCallOutputMessage,
 ]
 ALL_MESSAGE_TYPES = (
+    Message,
     SystemMessage,
     DeveloperMessage,
     UserMessage,

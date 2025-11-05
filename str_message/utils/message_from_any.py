@@ -4,22 +4,27 @@ import typing
 import durl
 import pydantic
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
-from openai.types.chat.chat_completion_message_param import ChatCompletionMessageParam
-from openai.types.responses.response_input_item import ResponseInputItem
-from openai.types.responses.response_input_item_param import ResponseInputItemParam
-from openai.types.responses.response_output_message import ResponseOutputMessage
-from openai.types.responses.response_output_message_param import (
-    ResponseOutputMessageParam,
-)
 from openai.types.responses.response_output_text_param import ResponseOutputTextParam
 
-from str_message import ANY_MESSAGE_TYPES, Message, ResponseInputItemAdapter
+from str_message import (
+    ANY_MESSAGE_TYPES,
+    Message,
+    MessageTypes,
+    ResponseInputItemAdapter,
+    ResponseInputItemModels,
+)
 
 
-def message_from_any(data: ANY_MESSAGE_TYPES) -> Message:
+def message_from_any(data: ANY_MESSAGE_TYPES) -> MessageTypes:
     """Convert various data types into Message objects."""
     from str_message.utils.chat_cmpl_content_part_to_str import (
         chat_cmpl_content_part_to_str,
+    )
+    from str_message.utils.message_from_chat_cmpl_message import (
+        message_from_chat_cmpl_message,
+    )
+    from str_message.utils.message_from_response_input_item import (
+        message_from_response_input_item,
     )
     from str_message.utils.response_input_content_to_str import (
         response_input_content_to_str,
@@ -66,24 +71,29 @@ def message_from_any(data: ANY_MESSAGE_TYPES) -> Message:
 
     # Chat completion message model type
     if isinstance(data, ChatCompletionMessage):
-        from str_message.utils.message_from_chat_cmpl_message import (
-            message_from_chat_cmpl_message,
-        )
-
         return message_from_chat_cmpl_message(data)
 
     # Response input item model type
-    if isinstance(data, pydantic.BaseModel):
-        from str_message.utils.message_from_response_input_item import (
-            message_from_response_input_item,
+    if isinstance(data, ResponseInputItemModels):
+        return message_from_response_input_item(
+            ResponseInputItemAdapter.validate_json(data.model_dump_json())
         )
 
+    # Handle dict type
+    if isinstance(data, typing.Dict):
         try:
-            return message_from_response_input_item(
-                ResponseInputItemAdapter.validate_json(data.model_dump_json())
-            )
+            chat_cmpl_message = ChatCompletionMessage.model_validate(data)
+            return message_from_chat_cmpl_message(chat_cmpl_message)
+        except pydantic.ValidationError:
+            pass  # Not a ChatCompletionMessage
+
+        try:
+            response_input_item = ResponseInputItemAdapter.validate_python(data)
+            return message_from_response_input_item(response_input_item)
         except pydantic.ValidationError:
             pass  # Not a ResponseInputItem
+
+    raise ValueError(f"Unsupported message type: {type(data).__name__}")
 
     if isinstance(data, ChatCompletionMessage):
         if data.tool_calls:
