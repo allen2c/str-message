@@ -70,7 +70,9 @@ ANY_MESSAGE_TYPES: typing.TypeAlias = typing.Union[
     OPENAI_MESSAGE_PARAM_TYPES,
     OPENAI_MESSAGE_TYPES,
 ]
-ListFuncDefAdapter = pydantic.TypeAdapter(typing.List[FunctionDefinition])
+ListFuncDefAdapter = pydantic.TypeAdapter[typing.List[FunctionDefinition]](
+    typing.List[FunctionDefinition]
+)
 ResponseInputItemModels = (
     EasyInputMessage,
     ResponseInputItemMessage,
@@ -94,7 +96,7 @@ ResponseInputItemModels = (
     ResponseCustomToolCall,
     ItemReference,
 )
-ResponseInputItemAdapter = pydantic.TypeAdapter(ResponseInputItem)
+ResponseInputItemAdapter = pydantic.TypeAdapter[ResponseInputItem](ResponseInputItem)
 
 
 class MessageUtils(abc.ABC):

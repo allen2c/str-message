@@ -17,8 +17,17 @@ from str_message import (
 
 def message_from_any(data: ANY_MESSAGE_TYPES) -> MessageTypes:
     """Convert various data types into Message objects."""
+    from str_message.types.chat_completion_messages import (
+        ChatCompletionMessage as ChatCompletionInputMessage,
+    )
+    from str_message.types.chat_completion_messages import (
+        ChatCompletionMessageAdapter,
+    )
     from str_message.utils.chat_cmpl_content_part_to_str import (
         chat_cmpl_content_part_to_str,
+    )
+    from str_message.utils.message_from_chat_cmpl_input_message import (
+        message_from_chat_cmpl_input_message,
     )
     from str_message.utils.message_from_chat_cmpl_message import (
         message_from_chat_cmpl_message,
@@ -72,6 +81,12 @@ def message_from_any(data: ANY_MESSAGE_TYPES) -> MessageTypes:
     # Chat completion message model type
     if isinstance(data, ChatCompletionMessage):
         return message_from_chat_cmpl_message(data)
+
+    # Chat completion input message model type
+    if isinstance(data, ChatCompletionInputMessage):
+        return message_from_chat_cmpl_input_message(
+            ChatCompletionMessageAdapter.validate_json(data.model_dump_json())
+        )
 
     # Response input item model type
     if isinstance(data, ResponseInputItemModels):
