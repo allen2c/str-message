@@ -1,3 +1,4 @@
+import abc
 from typing import List, Literal, Optional, TypeAlias, Union
 
 from pydantic import BaseModel, Field, TypeAdapter
@@ -123,10 +124,63 @@ ChatCompletionMessageToolCallUnion: TypeAlias = Union[
     ChatCompletionMessageFunctionToolCall, ChatCompletionMessageCustomToolCall
 ]
 
+
+def chat_cmpl_content_to_str(
+    content: Optional[Union[str, List[ContentArrayOfContentPart]]],
+) -> str:
+    if content is None:
+        return ""
+
+    elif isinstance(content, str):
+        return content
+
+    elif isinstance(content, list):
+        parts: list[str] = []
+        for part in content:
+            if isinstance(part, ChatCompletionContentPartText):
+                parts.append(part.text)
+
+            elif isinstance(part, ChatCompletionContentPartImage):
+                parts.append(f"![image_url]({part.image_url.url})")
+
+            elif isinstance(part, ChatCompletionContentPartInputAudio):
+                parts.append(f"![input_audio]({part.input_audio.data})")
+
+            elif isinstance(part, File):
+                if part.file.file_id:
+                    parts.append(f"![file_id]({part.file.file_id})")
+                elif part.file.file_data:
+                    parts.append(f"![file_data]({part.file.file_data})")
+                elif part.file.filename:
+                    parts.append(f"![filename]({part.file.filename})")
+                else:
+                    raise ValueError(f"Unsupported file content: {part}")
+
+            elif isinstance(part, ChatCompletionContentPartRefusal):
+                parts.append(f"Refusal: {part.refusal}")
+
+            else:
+                raise ValueError(
+                    f"Unsupported content part type: {type(part).__name__}"
+                )
+
+        return "\n\n".join(parts)
+
+    else:
+        raise ValueError(f"Unsupported content type: {type(content).__name__}")
+
+
 # ---
 
 
-class ChatCompletionDeveloperMessage(BaseModel):
+class ChatCompletionMessageUtils(abc.ABC):
+    content: Optional[Union[str, List[ContentArrayOfContentPart]]]
+
+    def str_content(self) -> str:
+        return chat_cmpl_content_to_str(self.content)
+
+
+class ChatCompletionDeveloperMessage(BaseModel, ChatCompletionMessageUtils):
     content: Union[str, List[ChatCompletionContentPartText]] = Field(
         description="The contents of the developer message."
     )
@@ -139,7 +193,7 @@ class ChatCompletionDeveloperMessage(BaseModel):
     )
 
 
-class ChatCompletionSystemMessage(BaseModel):
+class ChatCompletionSystemMessage(BaseModel, ChatCompletionMessageUtils):
     content: Union[str, List[ChatCompletionContentPartText]] = Field(
         description="The contents of the system message."
     )
@@ -152,19 +206,7 @@ class ChatCompletionSystemMessage(BaseModel):
     )
 
 
-class ChatCompletionToolMessage(BaseModel):
-    content: Union[str, List[ChatCompletionContentPartText]] = Field(
-        description="The contents of the tool message."
-    )
-    role: Literal["tool"] = Field(
-        description="The role of the messages author, in this case `tool`."
-    )
-    tool_call_id: str = Field(
-        description="Tool call that this message is responding to."
-    )
-
-
-class ChatCompletionUserMessage(BaseModel):
+class ChatCompletionUserMessage(BaseModel, ChatCompletionMessageUtils):
     content: Union[str, List[ChatCompletionContentPart]] = Field(
         description="The contents of the user message."
     )
@@ -177,7 +219,7 @@ class ChatCompletionUserMessage(BaseModel):
     )
 
 
-class ChatCompletionAssistantMessage(BaseModel):
+class ChatCompletionAssistantMessage(BaseModel, ChatCompletionMessageUtils):
     role: Literal["assistant"] = Field(
         description="The role of the messages author, in this case `assistant`."
     )
@@ -206,7 +248,19 @@ class ChatCompletionAssistantMessage(BaseModel):
     )
 
 
-class ChatCompletionFunctionMessage(BaseModel):
+class ChatCompletionToolMessage(BaseModel, ChatCompletionMessageUtils):
+    content: Union[str, List[ChatCompletionContentPartText]] = Field(
+        description="The contents of the tool message."
+    )
+    role: Literal["tool"] = Field(
+        description="The role of the messages author, in this case `tool`."
+    )
+    tool_call_id: str = Field(
+        description="Tool call that this message is responding to."
+    )
+
+
+class ChatCompletionFunctionMessage(BaseModel, ChatCompletionMessageUtils):
     content: Optional[str] = Field(description="The contents of the function message.")
     name: str = Field(description="The name of the function to call.")
     role: Literal["function"] = Field(
