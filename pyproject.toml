@@ -34,6 +34,7 @@ all = []
 black = { extras = ["jupyter"], version = "*" }
 codepress = "*"
 isort = "*"
+openai-usage = "*"
 poetry-plugin-export = "*"
 pytest = "*"
 pytest-asyncio = "*"
