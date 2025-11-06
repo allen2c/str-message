@@ -100,9 +100,10 @@ ResponseInputItemAdapter = pydantic.TypeAdapter[ResponseInputItem](ResponseInput
 
 
 CONTENT_AUDIO_EXPR = r"@![input_audio]({input_audio})"
-CONTENT_IMAGE_EXPR = r"@![image_url]({image_url})"
+CONTENT_IMAGE_URL_EXPR = r"@![image_url]({image_url})"
+CONTENT_IMAGE_ID_EXPR = r"@![image_id]({image_id})"
 CONTENT_FILE_ID_EXPR = r"@![file_id]({file_id})"
-CONTENT_FILE_DATA_EXPR = r"@![file_data]({file_data})"
+CONTENT_FILE_URL_EXPR = r"@![file_url]({file_url})"
 CONTENT_FILE_FILENAME_EXPR = r"@![filename]({filename})"
 
 
