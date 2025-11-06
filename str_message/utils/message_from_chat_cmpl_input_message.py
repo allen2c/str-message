@@ -27,10 +27,13 @@ def message_from_chat_cmpl_input_message(
 ) -> MessageTypes:
     if isinstance(data, ChatCompletionDeveloperMessage):
         return DeveloperMessage(content=data.str_content())
+
     elif isinstance(data, ChatCompletionSystemMessage):
         return SystemMessage(content=data.str_content())
+
     elif isinstance(data, ChatCompletionUserMessage):
         return UserMessage(content=data.str_content())
+
     elif isinstance(data, ChatCompletionAssistantMessage):
         if data.tool_calls:
             _tool_call = data.tool_calls[0]  # Only one tool call is supported
