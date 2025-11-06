@@ -99,6 +99,13 @@ ResponseInputItemModels = (
 ResponseInputItemAdapter = pydantic.TypeAdapter[ResponseInputItem](ResponseInputItem)
 
 
+CONTENT_AUDIO_EXPR = r"@![input_audio]({input_audio})"
+CONTENT_IMAGE_EXPR = r"@![image_url]({image_url})"
+CONTENT_FILE_ID_EXPR = r"@![file_id]({file_id})"
+CONTENT_FILE_DATA_EXPR = r"@![file_data]({file_data})"
+CONTENT_FILE_FILENAME_EXPR = r"@![filename]({filename})"
+
+
 class MessageUtils(abc.ABC):
     role: typing.Literal["user", "assistant", "system", "developer", "tool"]
     content: str

@@ -9,6 +9,8 @@ from str_message import AssistantMessage, ReasoningMessage, ToolCallMessage
 def message_from_chat_cmpl_message(
     data: ChatCompletionMessage, *, msg_id: typing.Optional[str] = None
 ) -> AssistantMessage | ReasoningMessage | ToolCallMessage:
+    from str_message import CONTENT_AUDIO_EXPR
+
     msg_id = msg_id or str(uuid.uuid7())
 
     if data.tool_calls:
@@ -37,5 +39,20 @@ def message_from_chat_cmpl_message(
             channel="analysis",
         )
 
+    elif data.content is not None:
+        return AssistantMessage(id=msg_id, content=data.content)
+
+    elif data.audio is not None:
+        return AssistantMessage(
+            id=msg_id,
+            content=CONTENT_AUDIO_EXPR.format(input_audio=data.audio.data),
+            metadata={"audio_id": data.audio.id, "transcript": data.audio.transcript},
+        )
+
+    elif data.refusal is not None:
+        return AssistantMessage(
+            id=msg_id, content=data.refusal, metadata={"is_refusal": "true"}
+        )
+
     else:
-        return AssistantMessage(id=msg_id, content=data.content or "")
+        raise ValueError(f"Unhandled chat completion message: {data}")

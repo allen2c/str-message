@@ -128,6 +128,14 @@ ChatCompletionMessageToolCallUnion: TypeAlias = Union[
 def chat_cmpl_content_to_str(
     content: Optional[Union[str, List[ContentArrayOfContentPart]]],
 ) -> str:
+    from str_message import (
+        CONTENT_AUDIO_EXPR,
+        CONTENT_FILE_DATA_EXPR,
+        CONTENT_FILE_FILENAME_EXPR,
+        CONTENT_FILE_ID_EXPR,
+        CONTENT_IMAGE_EXPR,
+    )
+
     if content is None:
         return ""
 
@@ -141,18 +149,24 @@ def chat_cmpl_content_to_str(
                 parts.append(part.text)
 
             elif isinstance(part, ChatCompletionContentPartImage):
-                parts.append(f"![image_url]({part.image_url.url})")
+                parts.append(CONTENT_IMAGE_EXPR.format(image_url=part.image_url.url))
 
             elif isinstance(part, ChatCompletionContentPartInputAudio):
-                parts.append(f"![input_audio]({part.input_audio.data})")
+                parts.append(
+                    CONTENT_AUDIO_EXPR.format(input_audio=part.input_audio.data)
+                )
 
             elif isinstance(part, File):
                 if part.file.file_id:
-                    parts.append(f"![file_id]({part.file.file_id})")
+                    parts.append(CONTENT_FILE_ID_EXPR.format(file_id=part.file.file_id))
                 elif part.file.file_data:
-                    parts.append(f"![file_data]({part.file.file_data})")
+                    parts.append(
+                        CONTENT_FILE_DATA_EXPR.format(file_data=part.file.file_data)
+                    )
                 elif part.file.filename:
-                    parts.append(f"![filename]({part.file.filename})")
+                    parts.append(
+                        CONTENT_FILE_FILENAME_EXPR.format(filename=part.file.filename)
+                    )
                 else:
                     raise ValueError(f"Unsupported file content: {part}")
 
