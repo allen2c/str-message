@@ -3,51 +3,11 @@ import datetime
 import typing
 import zoneinfo
 
-import agents
-import openai
 import pytest
 
+import str_message.patches.patch_openai
 
-@pytest.fixture(scope="module")
-def model_name():
-    """OpenAI model name for testing."""
-    return "gpt-4.1-nano"
-
-
-@pytest.fixture(scope="module")
-def openai_client():
-    """OpenAI async client for testing."""
-    return openai.AsyncOpenAI()
-
-
-@pytest.fixture(scope="module")
-def chat_model(model_name: str, openai_client: openai.AsyncOpenAI):
-    """Agents chat model configured with OpenAI client."""
-    return agents.OpenAIResponsesModel(model=model_name, openai_client=openai_client)
-
-
-@pytest.fixture(scope="module")
-def model_settings():
-    """Model settings for deterministic testing."""
-    return agents.ModelSettings(temperature=0.0)
-
-
-@pytest.fixture(scope="module")
-def agent(agents_tool_get_current_time: agents.FunctionTool):
-    """Test agent configured with time function tool."""
-    return agents.Agent(name="Test Agent", tools=[agents_tool_get_current_time])
-
-
-@pytest.fixture(scope="module")
-def agents_run_config(
-    chat_model: agents.OpenAIResponsesModel, model_settings: agents.ModelSettings
-):
-    """Agents run configuration with tracing disabled."""
-    return agents.RunConfig(
-        tracing_disabled=True,
-        model=chat_model,
-        model_settings=model_settings,
-    )
+str_message.patches.patch_openai.patch_openai()
 
 
 @pytest.fixture(scope="module")
@@ -66,6 +26,8 @@ def function_get_current_time():
 @pytest.fixture(scope="module")
 def agents_tool_get_current_time(function_get_current_time: typing.Callable[..., str]):
     """Agents function tool wrapper for get_current_time function."""
+    import agents
+
     return agents.function_tool(function_get_current_time)
 
 
