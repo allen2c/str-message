@@ -3,6 +3,7 @@ import typing
 
 import durl
 import pydantic
+from openai.types.chat.chat_completion import ChatCompletion
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.responses.response_output_text_param import ResponseOutputTextParam
 
@@ -15,7 +16,7 @@ from str_message import (
 )
 
 
-def message_from_any(data: ANY_MESSAGE_TYPES) -> MessageTypes:
+def message_from_any(data: ANY_MESSAGE_TYPES | ChatCompletion) -> MessageTypes:
     """Convert various data types into Message objects."""
     from str_message.types.chat_completion_messages import (
         ChatCompletionMessage as ChatCompletionInputMessage,
@@ -25,6 +26,9 @@ def message_from_any(data: ANY_MESSAGE_TYPES) -> MessageTypes:
     )
     from str_message.utils.chat_cmpl_content_part_to_str import (
         chat_cmpl_content_part_to_str,
+    )
+    from str_message.utils.message_from_chat_cmpl import (
+        message_from_chat_cmpl,
     )
     from str_message.utils.message_from_chat_cmpl_input_message import (
         message_from_chat_cmpl_input_message,
@@ -78,6 +82,10 @@ def message_from_any(data: ANY_MESSAGE_TYPES) -> MessageTypes:
     if isinstance(data, durl.DataURL):
         return Message(role="user", content=str(data))
 
+    # Chat completion model type
+    if isinstance(data, ChatCompletion):
+        return message_from_chat_cmpl(data)
+
     # Chat completion message model type
     if isinstance(data, ChatCompletionMessage):
         return message_from_chat_cmpl_message(data)
@@ -96,6 +104,12 @@ def message_from_any(data: ANY_MESSAGE_TYPES) -> MessageTypes:
 
     # Handle dict type
     if isinstance(data, typing.Dict):
+        try:
+            chat_cmpl = ChatCompletion.model_validate(data)
+            return message_from_chat_cmpl(chat_cmpl)
+        except pydantic.ValidationError:
+            pass  # Not a ChatCompletion
+
         try:
             chat_cmpl_message = ChatCompletionMessage.model_validate(data)
             return message_from_chat_cmpl_message(chat_cmpl_message)

@@ -1,15 +1,34 @@
+import typing
+
+from openai.types.chat.chat_completion import ChatCompletion, Choice
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 
-from str_message import AssistantMessage, ReasoningMessage, ToolCallMessage
+from str_message import (
+    AssistantMessage,
+    ReasoningMessage,
+    ToolCallMessage,
+)
 
 
-def message_from_chat_cmpl_message(
-    data: ChatCompletionMessage,
+def message_from_chat_cmpl(
+    data: ChatCompletion,
 ) -> AssistantMessage | ReasoningMessage | ToolCallMessage:
-    if data.tool_calls:
-        _tool_call = data.tool_calls[0]  # Only one tool call is supported
+    might_choice: typing.Optional[Choice] = next(
+        (choice for choice in data.choices),
+        None,
+    )
+
+    if might_choice is None:
+        raise ValueError("No choice found in ChatCompletion")
+
+    choice: Choice = might_choice
+    message: ChatCompletionMessage = choice.message
+
+    if message.tool_calls:
+        _tool_call = message.tool_calls[0]  # Only one tool call is supported
         if _tool_call.type == "function":
             return ToolCallMessage(
+                id=data.id,
                 role="assistant",
                 content=(
                     f"[tool_call:{_tool_call.function.name}]"
@@ -25,10 +44,11 @@ def message_from_chat_cmpl_message(
 
     elif reasoning := getattr(data, "reasoning", None):
         return ReasoningMessage(
+            id=data.id,
             role="assistant",
             content=reasoning,
             channel="analysis",
         )
 
     else:
-        return AssistantMessage(content=data.content or "")
+        return AssistantMessage(id=data.id, content=message.content or "")
