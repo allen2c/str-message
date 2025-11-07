@@ -130,10 +130,10 @@ def chat_cmpl_content_to_str(
 ) -> str:
     from str_message import (
         CONTENT_AUDIO_EXPR,
-        CONTENT_FILE_DATA_EXPR,
         CONTENT_FILE_FILENAME_EXPR,
         CONTENT_FILE_ID_EXPR,
-        CONTENT_IMAGE_EXPR,
+        CONTENT_FILE_URL_EXPR,
+        CONTENT_IMAGE_URL_EXPR,
     )
 
     if content is None:
@@ -149,7 +149,9 @@ def chat_cmpl_content_to_str(
                 parts.append(part.text)
 
             elif isinstance(part, ChatCompletionContentPartImage):
-                parts.append(CONTENT_IMAGE_EXPR.format(image_url=part.image_url.url))
+                parts.append(
+                    CONTENT_IMAGE_URL_EXPR.format(image_url=part.image_url.url)
+                )
 
             elif isinstance(part, ChatCompletionContentPartInputAudio):
                 parts.append(
@@ -161,7 +163,7 @@ def chat_cmpl_content_to_str(
                     parts.append(CONTENT_FILE_ID_EXPR.format(file_id=part.file.file_id))
                 elif part.file.file_data:
                     parts.append(
-                        CONTENT_FILE_DATA_EXPR.format(file_data=part.file.file_data)
+                        CONTENT_FILE_URL_EXPR.format(file_data=part.file.file_data)
                     )
                 elif part.file.filename:
                     parts.append(
