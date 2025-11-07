@@ -9,15 +9,9 @@ import rich.console
 from openai.types.shared.function_definition import FunctionDefinition
 
 import str_message.patches.patch_openai
+from str_message.types.func_def import FuncDef
 
 str_message.patches.patch_openai.patch_openai()
-
-
-FuncDefTupleType: typing.TypeAlias = tuple[
-    FunctionDefinition,
-    typing.Callable[..., typing.Awaitable[str]],
-    typing.Type[pydantic.BaseModel],
-]
 
 
 @pytest.fixture(scope="module")
@@ -26,7 +20,7 @@ def console():
 
 
 @pytest.fixture(scope="module")
-def func_def_get_current_time() -> FuncDefTupleType:
+def func_def_get_current_time() -> FuncDef:
     class Arguments(pydantic.BaseModel):
         timezone: typing.Optional[str] = pydantic.Field(
             default=None,
@@ -55,43 +49,40 @@ def func_def_get_current_time() -> FuncDefTupleType:
         parameters=Arguments.model_json_schema(),
     )
 
-    return (func_def, get_current_time, Arguments)
+    return FuncDef(func_def, get_current_time, Arguments, context=None)
 
 
 @pytest.fixture(scope="module")
-def agents_tool_get_current_time(
-    func_def_get_current_time: FuncDefTupleType, console: rich.console.Console
-):
-    """Agents function tool wrapper for get_current_time function."""
-    import agents
+def func_def_get_current_weather() -> FuncDef:
+    class Arguments(pydantic.BaseModel):
+        city: str = pydantic.Field(
+            description="The city to get the weather of.",
+        )
 
-    func_def, func, _ = func_def_get_current_time
+    async def get_current_weather(arguments: Arguments | str) -> str:
+        """Get the weather of the city"""
+        arguments = (
+            Arguments.model_validate_json(arguments)
+            if not isinstance(arguments, Arguments)
+            else arguments
+        )
 
-    async def on_invoke_tool(
-        ctx: agents.RunContextWrapper[agents.TContext], arguments: str
-    ) -> typing.Any:
-        console.print(f"Agent passes context: {ctx}")
-        return await func(arguments)
+        return "The weather of the city is sunny now."
 
-    return agents.FunctionTool(
-        name=func_def.name,
-        description=func_def.description or "",
-        params_json_schema=func_def.parameters or {},
-        on_invoke_tool=on_invoke_tool,
+    func_def = FunctionDefinition(
+        name="get_current_weather",
+        description="Get the current weather of the city.",
+        parameters=Arguments.model_json_schema(),
     )
+
+    return FuncDef(func_def, get_current_weather, Arguments, context=None)
 
 
 @pytest.fixture(scope="module")
-def chat_cmpl_tool_get_current_time(func_def_get_current_time: FuncDefTupleType):
-    """OpenAI chat completion tool parameter for get_current_time function."""
-    from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
-    from openai.types.shared_params.function_definition import FunctionDefinition
-
-    return ChatCompletionToolParam(
-        function=FunctionDefinition(
-            name=func_def_get_current_time[0].name,
-            description=func_def_get_current_time[0].description or "",
-            parameters=func_def_get_current_time[0].parameters or {},
-        ),
-        type="function",
-    )
+def func_defs(
+    func_def_get_current_time: FuncDef, func_def_get_current_weather: FuncDef
+) -> typing.Dict[str, FuncDef]:
+    return {
+        "get_current_time": func_def_get_current_time,
+        "get_current_weather": func_def_get_current_weather,
+    }
