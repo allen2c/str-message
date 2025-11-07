@@ -20,11 +20,13 @@ class FuncDef:
         arguments_type: typing.Type[pydantic.BaseModel],
         *,
         context: typing.Optional[agents.TContext] = None,
+        strict: bool = True,
     ):
         self.func_def = func_def
         self.callable = callable
         self.arguments_type = arguments_type
         self.context = context
+        self.strict = strict
 
     @property
     def name(self) -> str:
@@ -36,7 +38,11 @@ class FuncDef:
 
     @property
     def parameters(self) -> typing.Dict[str, typing.Any]:
-        return self.func_def.parameters or {}
+        param = self.func_def.parameters or {}
+        param["additionalProperties"] = False
+        if properties := param.get("properties"):
+            param["required"] = list(dict(properties).keys())  # type: ignore
+        return param
 
     @property
     def is_context_required(self) -> bool:
@@ -49,6 +55,7 @@ class FuncDef:
                 name=self.name,
                 description=self.description,
                 parameters=self.parameters,
+                strict=self.strict,
             ),
             type="function",
         )
@@ -73,4 +80,5 @@ class FuncDef:
             description=self.description,
             params_json_schema=self.parameters,
             on_invoke_tool=on_invoke_tool,
+            strict_json_schema=self.strict,
         )

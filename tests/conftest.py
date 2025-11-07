@@ -7,6 +7,7 @@ import pydantic
 import pytest
 import rich.console
 from openai.types.shared.function_definition import FunctionDefinition
+from str_or_none import str_or_none
 
 import str_message.patches.patch_openai
 from str_message.types.func_def import FuncDef
@@ -22,8 +23,9 @@ def console():
 @pytest.fixture(scope="module")
 def func_def_get_current_time() -> FuncDef:
     class Arguments(pydantic.BaseModel):
-        timezone: typing.Optional[str] = pydantic.Field(
-            default=None,
+        model_config = pydantic.ConfigDict(extra="forbid")
+        timezone: str = pydantic.Field(
+            default="",
             description=(
                 "The timezone to get the current time in. If not provided, "
                 + "the current time in Asia/Taipei timezone will be returned."
@@ -38,7 +40,7 @@ def func_def_get_current_time() -> FuncDef:
             else arguments
         )
         dt = datetime.datetime.now(
-            zoneinfo.ZoneInfo(arguments.timezone or "Asia/Taipei")
+            zoneinfo.ZoneInfo(str_or_none(arguments.timezone) or "Asia/Taipei")
         )
         dt = dt.replace(microsecond=0)
         return dt.isoformat()
@@ -55,6 +57,7 @@ def func_def_get_current_time() -> FuncDef:
 @pytest.fixture(scope="module")
 def func_def_get_current_weather() -> FuncDef:
     class Arguments(pydantic.BaseModel):
+        model_config = pydantic.ConfigDict(extra="forbid")
         city: str = pydantic.Field(
             description="The city to get the weather of.",
         )
