@@ -11,6 +11,7 @@ dependencies = [
   "str-or-none",
   "tiktoken",
   "uuid-utils",
+  "openai-usage",
 ]
 description = "Any Message Could be a String, for LLM Usage"
 license = { text = "MIT" }
@@ -34,7 +35,6 @@ all = []
 black = { extras = ["jupyter"], version = "*" }
 codepress = "*"
 isort = "*"
-openai-usage = "*"
 poetry-plugin-export = "*"
 pytest = "*"
 pytest-asyncio = "*"
