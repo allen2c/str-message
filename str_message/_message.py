@@ -6,13 +6,16 @@ import time
 import typing
 import zoneinfo
 
+import agents
 import durl
 import jinja2
+import openai_usage
 import pydantic
 import uuid_utils as uuid
 from openai.types.chat.chat_completion import ChatCompletion
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.chat.chat_completion_message_param import ChatCompletionMessageParam
+from openai.types.completion_usage import CompletionUsage
 from openai.types.responses.easy_input_message import EasyInputMessage
 from openai.types.responses.response_code_interpreter_tool_call import (
     ResponseCodeInterpreterToolCall,
@@ -50,6 +53,9 @@ from openai.types.responses.response_input_item import (
 from openai.types.responses.response_input_item_param import ResponseInputItemParam
 from openai.types.responses.response_output_message import ResponseOutputMessage
 from openai.types.responses.response_reasoning_item import ResponseReasoningItem
+from openai.types.responses.response_usage import (
+    ResponseUsage,
+)
 from openai.types.shared.function_definition import FunctionDefinition
 from rich.pretty import pretty_repr
 
@@ -355,6 +361,7 @@ MessageTypes: typing.TypeAlias = typing.Union[
     ToolCallOutputMessage,
     UserMessage,
 ]
+MessageTypesList: typing.TypeAlias = typing.List[MessageTypes]
 ALL_MESSAGE_TYPES = (
     AssistantMessage,
     DeveloperMessage,
@@ -365,3 +372,50 @@ ALL_MESSAGE_TYPES = (
     ToolCallOutputMessage,
     UserMessage,
 )
+
+
+class Conversation(pydantic.BaseModel):
+    id: str = pydantic.Field(default_factory=lambda: str(uuid.uuid7()))
+    messages: MessageTypesList = pydantic.Field(default_factory=list)
+    usages: typing.List[openai_usage.Usage] = pydantic.Field(default_factory=list)
+
+    @property
+    def total_cost(self) -> str:
+        import decimal
+
+        total_cost = decimal.Decimal(0)
+        for usage in self.usages:
+            if usage.cost:
+                total_cost += decimal.Decimal(usage.cost)
+        return total_cost.to_eng_string()
+
+    def add_message(self, message: MessageTypes) -> None:
+        self.messages.append(message)
+
+    def add_usage(
+        self,
+        usage: (
+            openai_usage.Usage
+            | ResponseUsage
+            | agents.RunContextWrapper
+            | agents.Usage
+            | CompletionUsage
+        ),
+        *,
+        model: typing.Optional[str] = None,
+        annotations: typing.Optional[str] = None,
+    ) -> None:
+        if isinstance(usage, openai_usage.Usage):
+            valid_usage = openai_usage.Usage.model_validate_json(
+                usage.model_dump_json()
+            )
+        else:
+            valid_usage = openai_usage.Usage.from_openai(usage)
+
+        if model:
+            valid_usage.model = model
+            valid_usage.cost = valid_usage.estimate_cost_str()
+        if annotations:
+            valid_usage.annotations = annotations
+
+        self.usages.append(valid_usage)
