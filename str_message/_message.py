@@ -10,6 +10,7 @@ import durl
 import jinja2
 import pydantic
 import uuid_utils as uuid
+from openai.types.chat.chat_completion import ChatCompletion
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.chat.chat_completion_message_param import ChatCompletionMessageParam
 from openai.types.responses.easy_input_message import EasyInputMessage
@@ -69,6 +70,7 @@ ANY_MESSAGE_TYPES: typing.TypeAlias = typing.Union[
     typing.Dict,
     OPENAI_MESSAGE_PARAM_TYPES,
     OPENAI_MESSAGE_TYPES,
+    ChatCompletion,
 ]
 ListFuncDefAdapter = pydantic.TypeAdapter[typing.List[FunctionDefinition]](
     typing.List[FunctionDefinition]
@@ -113,6 +115,26 @@ class MessageUtils(abc.ABC):
     created_at: int
     metadata: typing.Optional[typing.Dict[str, str]]
 
+    @classmethod
+    def from_any(cls, data: ANY_MESSAGE_TYPES) -> "Message":
+        """Create message from various input types."""
+        from str_message.utils.message_from_any import message_from_any
+
+        return message_from_any(data)
+
+    @classmethod
+    def to_chat_cmpl_input_messages(
+        cls, messages: typing.Union[list["Message"], "Message"]
+    ) -> list[ChatCompletionMessageParam]:
+        """Convert message to list of ChatCompletionMessageParam."""
+        from str_message.utils.messages_to_chat_cmpl_input_messages import (
+            messages_to_chat_cmpl_input_messages,
+        )
+
+        return messages_to_chat_cmpl_input_messages(
+            [messages] if isinstance(messages, Message) else messages
+        )
+
     def to_instructions(
         self,
         *,
@@ -142,13 +164,6 @@ class MessageUtils(abc.ABC):
             dt=_dt,
             content=pretty_repr(_content, max_string=max_string),
         ).strip()
-
-    @classmethod
-    def from_any(cls, data: ANY_MESSAGE_TYPES) -> "Message":
-        """Create message from various input types."""
-        from str_message.utils.message_from_any import message_from_any
-
-        return message_from_any(data)
 
 
 class Message(pydantic.BaseModel, MessageUtils):
