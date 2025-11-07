@@ -1,7 +1,5 @@
 import openai
 import pytest
-import rich.live
-import rich.text
 from rich.console import Console
 
 from str_message import Conversation, Message, UserMessage
@@ -38,10 +36,11 @@ async def test_oai(console: Console):
             timeout=10.0,
         ) as stream:
             counter: int = 0
-            with rich.live.Live(console=console, refresh_per_second=1) as live:
-                async for _ in stream:
-                    counter += 1
-                    live.update(rich.text.Text(f"Streaming Events {counter}"))
+            async for chunk in stream:
+                if chunk.type == "content.delta":
+                    console.print(chunk.delta, style="hot_pink", end="")
+                counter += 1
+            console.print(f"\n[{idx}] total chunks: {counter}")
 
         response = await stream.get_final_completion()
         console.print(f"[{idx}] response:")
