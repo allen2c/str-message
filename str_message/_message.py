@@ -101,12 +101,80 @@ ResponseInputItemModels = (
 ResponseInputItemAdapter = pydantic.TypeAdapter[ResponseInputItem](ResponseInputItem)
 
 
+CONTENT_TEXT_TYPE = "text"
+CONTENT_AUDIO_TYPE = "input_audio"
+CONTENT_IMAGE_URL_TYPE = "image_url"
+CONTENT_IMAGE_ID_TYPE = "image_id"
+CONTENT_FILE_ID_TYPE = "file_id"
+CONTENT_FILE_URL_TYPE = "file_url"
+CONTENT_FILE_FILENAME_TYPE = "file_filename"
+ALL_CONTENT_TYPES = (
+    CONTENT_TEXT_TYPE,
+    CONTENT_AUDIO_TYPE,
+    CONTENT_IMAGE_URL_TYPE,
+    CONTENT_IMAGE_ID_TYPE,
+    CONTENT_FILE_ID_TYPE,
+    CONTENT_FILE_URL_TYPE,
+    CONTENT_FILE_FILENAME_TYPE,
+)
+CONTENT_TYPE: typing.TypeAlias = typing.Union[
+    typing.Literal[
+        "text",
+        "input_audio",
+        "image_url",
+        "image_id",
+        "file_id",
+        "file_url",
+        "file_filename",
+    ],
+    str,
+]
+
 CONTENT_AUDIO_EXPR = r"@![input_audio]({input_audio})"
 CONTENT_IMAGE_URL_EXPR = r"@![image_url]({image_url})"
 CONTENT_IMAGE_ID_EXPR = r"@![image_id]({image_id})"
 CONTENT_FILE_ID_EXPR = r"@![file_id]({file_id})"
 CONTENT_FILE_URL_EXPR = r"@![file_url]({file_url})"
 CONTENT_FILE_FILENAME_EXPR = r"@![filename]({filename})"
+
+
+class ContentPart(pydantic.BaseModel):
+    type: CONTENT_TYPE
+    value: str
+
+    @classmethod
+    def from_str(cls, content: str) -> list["ContentPart"]:
+        from str_message.utils.content_parts_from_str import content_parts_from_str
+
+        return content_parts_from_str(content)
+
+    @pydantic.model_validator(mode="after")
+    def warning_invalid_type(self) -> typing.Self:
+        if self.type not in ALL_CONTENT_TYPES:
+            logger.warning(f"Invalid content type: {self.type}")
+        return self
+
+    def to_str(self) -> str:
+        if self.type == CONTENT_TEXT_TYPE:
+            return self.value
+        elif self.type == CONTENT_AUDIO_TYPE:
+            return CONTENT_AUDIO_EXPR.format(input_audio=self.value)
+        elif self.type == CONTENT_IMAGE_URL_TYPE:
+            return CONTENT_IMAGE_URL_EXPR.format(image_url=self.value)
+        elif self.type == CONTENT_IMAGE_ID_TYPE:
+            return CONTENT_IMAGE_ID_EXPR.format(image_id=self.value)
+        elif self.type == CONTENT_FILE_ID_TYPE:
+            return CONTENT_FILE_ID_EXPR.format(file_id=self.value)
+        elif self.type == CONTENT_FILE_URL_TYPE:
+            return CONTENT_FILE_URL_EXPR.format(file_url=self.value)
+        elif self.type == CONTENT_FILE_FILENAME_TYPE:
+            return CONTENT_FILE_FILENAME_EXPR.format(filename=self.value)
+        else:
+            logger.warning(f"Invalid content type: {self.type}")
+            return f"@![{self.type}]({self.value})"
+
+
+ContentParts = pydantic.TypeAdapter[list[ContentPart]](list[ContentPart])
 
 
 class MessageUtils(abc.ABC):
@@ -134,6 +202,14 @@ class MessageUtils(abc.ABC):
         return messages_to_chat_cmpl_input_messages(
             [messages] if isinstance(messages, Message) else messages
         )
+
+    @classmethod
+    def content_to_parts(cls, content: str) -> list[ContentPart]:
+        return ContentPart.from_str(content)
+
+    @property
+    def content_parts(self) -> list[ContentPart]:
+        return self.content_to_parts(self.content)
 
     def to_instructions(
         self,
