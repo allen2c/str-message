@@ -4,10 +4,16 @@ import typing
 import zoneinfo
 
 import pytest
+import rich.console
 
 import str_message.patches.patch_openai
 
 str_message.patches.patch_openai.patch_openai()
+
+
+@pytest.fixture(scope="module")
+def console():
+    return rich.console.Console()
 
 
 @pytest.fixture(scope="module")
