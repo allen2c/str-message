@@ -5,7 +5,7 @@ from str_message import Conversation, Message, UserMessage
 from str_message.utils.might_reasoning import might_reasoning_effort
 from str_message.utils.might_temperature import might_temperature
 
-MODEL = "gpt-5-mini"
+MODEL = "gpt-5-nano"
 
 user_says: list[str] = [
     "hi",

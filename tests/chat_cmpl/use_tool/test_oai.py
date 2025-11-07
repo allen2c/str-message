@@ -13,7 +13,7 @@ from str_message.utils.might_reasoning import might_reasoning_effort
 from str_message.utils.might_temperature import might_temperature
 from str_message.utils.safe_pop import safe_pop
 
-MODEL = "gpt-5-mini"
+MODEL = "gpt-5-nano"
 
 user_says: list[str] = [
     "what time in Tokyo now?",
