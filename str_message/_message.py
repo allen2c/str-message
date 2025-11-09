@@ -51,6 +51,7 @@ from openai.types.responses.response_input_item import (
     ResponseInputItem,
 )
 from openai.types.responses.response_input_item_param import ResponseInputItemParam
+from openai.types.responses.response_input_param import ResponseInputParam
 from openai.types.responses.response_output_message import ResponseOutputMessage
 from openai.types.responses.response_reasoning_item import ResponseReasoningItem
 from openai.types.responses.response_usage import (
@@ -206,6 +207,19 @@ class MessageUtils(abc.ABC):
         )
 
         return messages_to_chat_cmpl_input_messages(
+            [messages] if isinstance(messages, Message) else messages
+        )
+
+    @classmethod
+    def to_response_input_param(
+        cls, messages: typing.Union[list["Message"], "Message"]
+    ) -> ResponseInputParam:
+        """Convert message to ResponseInputParam."""
+        from str_message.utils.messages_to_response_input_param import (
+            messages_to_response_input_param,
+        )
+
+        return messages_to_response_input_param(
             [messages] if isinstance(messages, Message) else messages
         )
 
