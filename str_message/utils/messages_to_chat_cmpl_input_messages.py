@@ -6,6 +6,14 @@ from openai.types.chat.chat_completion_assistant_message_param import (
 from openai.types.chat.chat_completion_assistant_message_param import (
     ChatCompletionAssistantMessageParam,
 )
+from openai.types.chat.chat_completion_content_part_image_param import (
+    ChatCompletionContentPartImageParam,
+    ImageURL,
+)
+from openai.types.chat.chat_completion_content_part_input_audio_param import (
+    ChatCompletionContentPartInputAudioParam,
+    InputAudio,
+)
 from openai.types.chat.chat_completion_developer_message_param import (
     ChatCompletionDeveloperMessageParam,
 )
@@ -58,7 +66,38 @@ def messages_gen_chat_cmpl_input_messages(
 ) -> typing.Generator[ChatCompletionMessageParam, None, None]:
     for message in messages:
         if isinstance(message, UserMessage):
-            yield ChatCompletionUserMessageParam(role="user", content=message.content)
+            for content_part in message.content_parts:
+                if content_part.type == CONTENT_TEXT_TYPE:
+                    yield ChatCompletionUserMessageParam(
+                        role="user",
+                        content=content_part.value,
+                    )
+                elif content_part.type == CONTENT_AUDIO_TYPE:
+                    yield ChatCompletionUserMessageParam(
+                        role="user",
+                        content=[
+                            ChatCompletionContentPartInputAudioParam(
+                                type="input_audio",
+                                input_audio=InputAudio(
+                                    data=content_part.value, format="wav"
+                                ),
+                            )
+                        ],
+                    )
+                elif content_part.type == CONTENT_IMAGE_URL_TYPE:
+                    yield ChatCompletionUserMessageParam(
+                        role="user",
+                        content=[
+                            ChatCompletionContentPartImageParam(
+                                type="image_url",
+                                image_url=ImageURL(url=content_part.value),
+                            )
+                        ],
+                    )
+                else:
+                    raise ValueError(
+                        f"Unsupported content part type: {content_part.type}"
+                    )
 
         elif isinstance(message, SystemMessage):
             yield ChatCompletionSystemMessageParam(
