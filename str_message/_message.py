@@ -52,6 +52,7 @@ from openai.types.responses.response_input_item import (
 )
 from openai.types.responses.response_input_item_param import ResponseInputItemParam
 from openai.types.responses.response_input_param import ResponseInputParam
+from openai.types.responses.response_output_item import ResponseOutputItem
 from openai.types.responses.response_output_message import ResponseOutputMessage
 from openai.types.responses.response_reasoning_item import ResponseReasoningItem
 from openai.types.responses.response_usage import (
@@ -77,7 +78,6 @@ ANY_MESSAGE_TYPES: typing.TypeAlias = typing.Union[
     typing.Dict,
     OPENAI_MESSAGE_PARAM_TYPES,
     OPENAI_MESSAGE_TYPES,
-    ChatCompletion,
 ]
 ListFuncDefAdapter = pydantic.TypeAdapter[typing.List[FunctionDefinition]](
     typing.List[FunctionDefinition]
@@ -106,6 +106,7 @@ ResponseInputItemModels = (
     ItemReference,
 )
 ResponseInputItemAdapter = pydantic.TypeAdapter[ResponseInputItem](ResponseInputItem)
+ResponseOutputItemAdapter = pydantic.TypeAdapter[ResponseOutputItem](ResponseOutputItem)
 
 
 CONTENT_TEXT_TYPE = "text"
@@ -191,7 +192,9 @@ class MessageUtils(abc.ABC):
     metadata: typing.Optional[typing.Dict[str, str]]
 
     @classmethod
-    def from_any(cls, data: ANY_MESSAGE_TYPES) -> "Message":
+    def from_any(
+        cls, data: ANY_MESSAGE_TYPES | ChatCompletion | ResponseOutputItem
+    ) -> "Message":
         """Create message from various input types."""
         from str_message.utils.message_from_any import message_from_any
 
@@ -402,6 +405,14 @@ class Conversation(pydantic.BaseModel):
             if usage.cost:
                 total_cost += decimal.Decimal(usage.cost)
         return total_cost.to_eng_string()
+
+    @property
+    def chat_cmpl_messages(self) -> list[ChatCompletionMessageParam]:
+        return Message.to_chat_cmpl_input_messages(self.messages)
+
+    @property
+    def response_input_param(self) -> ResponseInputParam:
+        return Message.to_response_input_param(self.messages)
 
     def add_message(self, message: MessageTypes) -> None:
         self.messages.append(message)
