@@ -10,7 +10,7 @@ from openai.types.shared.function_definition import FunctionDefinition
 from rich.pretty import pretty_repr
 
 if typing.TYPE_CHECKING:
-    from str_message import Message
+    from str_message import MessageTypes
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ ListFunctionDefinitionAdapter = pydantic.TypeAdapter(typing.List[FunctionDefinit
 
 
 def messages_to_sharegpt(
-    messages: typing.List["Message"],
+    messages: typing.List["MessageTypes"],
     media_dir: pathlib.Path | str | None = None,
     *,
     tool_definitions: typing.List[FunctionDefinition] | None = None,
@@ -98,13 +98,19 @@ def messages_to_sharegpt(
                 output_messages.append({role_tag: user_tag, content_tag: msg.content})
         elif msg.role == "assistant":
             # Function call
-            if msg.tool_call_id or msg.tool_name or msg.channel == "commentary":
-                output_messages.append(
-                    {
-                        role_tag: function_tag,
-                        content_tag: msg.tool_call_arguments or "{}",
-                    }
-                )
+            if msg.channel == "commentary":
+                if tool_call_arguments := getattr(msg, "tool_call_arguments", None):
+                    output_messages.append(
+                        {
+                            role_tag: function_tag,
+                            content_tag: tool_call_arguments or "{}",
+                        }
+                    )
+                else:
+                    raise ValueError(
+                        "Tool call arguments are required for assistant "
+                        + f"commentary message: {msg}"
+                    )
             # Assistant answer
             else:
                 output_messages.append(

@@ -268,7 +268,7 @@ class MessageUtils(abc.ABC):
 class Message(pydantic.BaseModel, MessageUtils):
     """A universal message format for AI interactions."""
 
-    id: str = pydantic.Field(default_factory=lambda: str(uuid.uuid7()))
+    id: str = pydantic.Field(default_factory=lambda: str(uuid.uuid4()))
 
     # Required fields
     role: typing.Literal["user", "assistant", "system", "developer", "tool"]
@@ -291,13 +291,6 @@ class Message(pydantic.BaseModel, MessageUtils):
     Channel 'final' is for final output of the assistant.
     """
 
-    # Optional fields
-    tool_call_id: typing.Optional[str] = None
-    tool_name: typing.Optional[str] = None
-    tool_call_arguments: typing.Optional[str] = None
-    mcp_call_id: typing.Optional[str] = None
-    mcp_call_name: typing.Optional[str] = None
-    mcp_call_arguments: typing.Optional[str] = None
     created_at: int = pydantic.Field(default_factory=lambda: int(time.time()))
     metadata: typing.Optional[typing.Dict[str, str]] = None
 
@@ -381,7 +374,11 @@ class McpCallMessage(Message):
 
     @pydantic.model_validator(mode="after")
     def raise_empty(self) -> typing.Self:
-        if not self.tool_call_id or not self.tool_name or not self.tool_call_arguments:
+        if (
+            not self.mcp_call_id
+            or not self.mcp_call_name
+            or not self.mcp_call_arguments
+        ):
             raise ValueError("Tool call id, name, and arguments are required")
         return self
 
