@@ -30,7 +30,6 @@ from str_message import (
 
 
 def message_from_response_input_item(data: ResponseInputItem) -> MessageTypes:
-    from str_message.utils.reasoning_to_str import reasoning_to_str
     from str_message.utils.response_input_content_to_str import (
         response_input_content_to_str,
     )
@@ -88,7 +87,7 @@ def message_from_response_input_item(data: ResponseInputItem) -> MessageTypes:
         return ReasoningMessage(
             id=data.id,
             role="assistant",
-            content=reasoning_to_str(data.summary, data.content),
+            content=data.model_dump_json(include={"summary", "content"}),
         )
 
     elif isinstance(data, McpListTools):

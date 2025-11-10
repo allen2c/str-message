@@ -98,9 +98,12 @@ def messages_to_sharegpt(
                 output_messages.append({role_tag: user_tag, content_tag: msg.content})
         elif msg.role == "assistant":
             # Function call
-            if msg.call_id or msg.tool_name or msg.channel == "commentary":
+            if msg.tool_call_id or msg.tool_name or msg.channel == "commentary":
                 output_messages.append(
-                    {role_tag: function_tag, content_tag: msg.arguments or "{}"}
+                    {
+                        role_tag: function_tag,
+                        content_tag: msg.tool_call_arguments or "{}",
+                    }
                 )
             # Assistant answer
             else:
