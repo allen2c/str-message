@@ -1,3 +1,5 @@
+import json
+import logging
 import typing
 
 from openai.types.responses.easy_input_message_param import EasyInputMessageParam
@@ -29,6 +31,9 @@ from openai.types.responses.response_reasoning_item_param import (
 from openai.types.responses.response_reasoning_item_param import (
     ResponseReasoningItemParam,
 )
+from openai.types.responses.response_reasoning_item_param import (
+    Summary as ResponseReasoningSummaryParam,
+)
 
 from str_message import (
     CONTENT_AUDIO_TYPE,
@@ -44,6 +49,8 @@ from str_message import (
     ToolCallOutputMessage,
     UserMessage,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def messages_to_response_input_param(messages: list["Message"]) -> ResponseInputParam:
@@ -140,16 +147,19 @@ def messages_gen_response_input_param(
             )
 
         elif isinstance(message, ReasoningMessage):
+            summary: typing.List[ResponseReasoningSummaryParam] = []
+            content: typing.List[ResponseReasoningContentParam] = []
+            try:
+                reasoning_data = json.loads(message.content)
+                summary = reasoning_data.get("summary") or []
+                content = reasoning_data.get("content") or []
+            except json.JSONDecodeError:
+                logger.warning(f"Failed to parse reasoning content: {message.content}")
             yield ResponseReasoningItemParam(
                 id=message.id,
-                summary=[],
+                summary=summary,
                 type="reasoning",
-                content=[
-                    ResponseReasoningContentParam(
-                        text=message.content,
-                        type="reasoning_text",
-                    )
-                ],
+                content=content,
             )
 
         else:

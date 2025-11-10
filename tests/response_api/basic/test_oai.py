@@ -8,8 +8,8 @@ from str_message.utils.might_temperature import might_temperature
 MODEL = "gpt-5-nano"
 
 user_says: list[str] = [
-    "hi",
     "why grass is green?",
+    "hi",
 ]
 
 

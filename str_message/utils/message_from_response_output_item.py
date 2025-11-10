@@ -42,8 +42,6 @@ McpListToolsToolAdapter = pydantic.TypeAdapter(typing.List[McpListToolsTool])
 
 
 def message_from_response_output_item(data: ResponseOutputItem) -> MessageTypes:
-    from str_message.utils.reasoning_to_str import reasoning_to_str
-
     if isinstance(data, ResponseOutputMessage):
         return AssistantMessage(
             id=data.id,
@@ -176,7 +174,7 @@ def message_from_response_output_item(data: ResponseOutputItem) -> MessageTypes:
     elif isinstance(data, ResponseReasoningItem):
         return ReasoningMessage(
             id=data.id,
-            content=reasoning_to_str(data.summary, data.content),
+            content=data.model_dump_json(include={"summary", "content"}),
         )
 
     elif isinstance(data, ImageGenerationCall):
