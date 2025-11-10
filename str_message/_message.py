@@ -295,6 +295,9 @@ class Message(pydantic.BaseModel, MessageUtils):
     tool_call_id: typing.Optional[str] = None
     tool_name: typing.Optional[str] = None
     tool_call_arguments: typing.Optional[str] = None
+    mcp_call_id: typing.Optional[str] = None
+    mcp_call_name: typing.Optional[str] = None
+    mcp_call_arguments: typing.Optional[str] = None
     created_at: int = pydantic.Field(default_factory=lambda: int(time.time()))
     metadata: typing.Optional[typing.Dict[str, str]] = None
 
@@ -368,9 +371,32 @@ class ToolCallOutputMessage(Message):
         return self
 
 
+class McpCallMessage(Message):
+    role: typing.Literal["mcp"] = "mcp"
+    content: str = ""
+    channel: typing.Literal["commentary"] = "commentary"
+    mcp_call_id: str = pydantic.Field(default="")
+    mcp_call_name: str = pydantic.Field(default="")
+    mcp_call_arguments: str = "{}"
+
+    @pydantic.model_validator(mode="after")
+    def raise_empty(self) -> typing.Self:
+        if not self.tool_call_id or not self.tool_name or not self.tool_call_arguments:
+            raise ValueError("Tool call id, name, and arguments are required")
+        return self
+
+
+class McpListToolsMessage(Message):
+    role: typing.Literal["mcp_list_tools"] = "mcp_list_tools"
+    content: str = ""
+    channel: typing.Literal["commentary"] = "commentary"
+
+
 MessageTypes: typing.TypeAlias = typing.Union[
     AssistantMessage,
     DeveloperMessage,
+    McpCallMessage,
+    McpListToolsMessage,
     Message,
     ReasoningMessage,
     SystemMessage,
@@ -382,6 +408,8 @@ MessageTypesList: typing.TypeAlias = typing.List[MessageTypes]
 ALL_MESSAGE_TYPES = (
     AssistantMessage,
     DeveloperMessage,
+    McpCallMessage,
+    McpListToolsMessage,
     Message,
     ReasoningMessage,
     SystemMessage,
