@@ -4,6 +4,8 @@ import typing
 import agents
 import pydantic
 from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
+from openai.types.responses.function_tool_param import FunctionToolParam
+from openai.types.responses.tool_param import ToolParam
 from openai.types.shared.function_definition import FunctionDefinition
 from openai.types.shared_params.function_definition import (
     FunctionDefinition as FunctionDefinitionParam,
@@ -58,6 +60,16 @@ class FuncDef:
                 strict=self.strict,
             ),
             type="function",
+        )
+
+    @property
+    def response_tool_param(self) -> ToolParam:
+        return FunctionToolParam(
+            name=self.name,
+            parameters=self.parameters,
+            strict=self.strict,
+            type="function",
+            description=self.description,
         )
 
     @property

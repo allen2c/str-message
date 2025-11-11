@@ -53,12 +53,18 @@ from str_message import (
 logger = logging.getLogger(__name__)
 
 
-def messages_to_response_input_param(messages: list["Message"]) -> ResponseInputParam:
-    return list[ResponseInputItemParam](messages_gen_response_input_param(messages))
+def messages_to_response_input_param(
+    messages: list["Message"], *, ignore_reasoning: bool = False
+) -> ResponseInputParam:
+    return list[ResponseInputItemParam](
+        messages_gen_response_input_param(messages, ignore_reasoning=ignore_reasoning)
+    )
 
 
 def messages_gen_response_input_param(
     messages: list["Message"],
+    *,
+    ignore_reasoning: bool = False,
 ) -> typing.Generator[ResponseInputItemParam, None, None]:
     for message in messages:
         if isinstance(message, UserMessage):
@@ -147,6 +153,10 @@ def messages_gen_response_input_param(
             )
 
         elif isinstance(message, ReasoningMessage):
+            if ignore_reasoning:
+                logger.debug(f"Ignoring reasoning message: {message.id}")
+                continue
+
             summary: typing.List[ResponseReasoningSummaryParam] = []
             content: typing.List[ResponseReasoningContentParam] = []
             try:

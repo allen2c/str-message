@@ -225,7 +225,10 @@ class MessageUtils(abc.ABC):
 
     @classmethod
     def to_response_input_param(
-        cls, messages: typing.Union[list["Message"], "Message"]
+        cls,
+        messages: typing.Union[list["Message"], "Message"],
+        *,
+        ignore_reasoning: bool = False,
     ) -> ResponseInputParam:
         """Convert message to ResponseInputParam."""
         from str_message.utils.messages_to_response_input_param import (
@@ -233,7 +236,8 @@ class MessageUtils(abc.ABC):
         )
 
         return messages_to_response_input_param(
-            [messages] if isinstance(messages, Message) else messages
+            [messages] if isinstance(messages, Message) else messages,
+            ignore_reasoning=ignore_reasoning,
         )
 
     @classmethod
