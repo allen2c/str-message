@@ -4,12 +4,14 @@ import durl
 import pydantic
 from openai.types.chat.chat_completion import ChatCompletion
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
+from openai.types.responses.parsed_response import ParsedResponseOutputItem
 from openai.types.responses.response_output_item import ResponseOutputItem
 
 from str_message import (
     ANY_MESSAGE_TYPES,
     Message,
     MessageTypes,
+    ParsedResponseOutputItemAdapter,
     ResponseInputItemAdapter,
     ResponseInputItemModels,
     ResponseOutputItemAdapter,
@@ -17,7 +19,12 @@ from str_message import (
 
 
 def message_from_any(
-    data: ANY_MESSAGE_TYPES | ChatCompletion | ResponseOutputItem,
+    data: (
+        ANY_MESSAGE_TYPES
+        | ChatCompletion
+        | ResponseOutputItem
+        | ParsedResponseOutputItem
+    ),
 ) -> MessageTypes:
     """Convert various data types into Message objects."""
     from str_message.types.chat_completion_messages import (
@@ -76,6 +83,14 @@ def message_from_any(
     ):
         return message_from_response_output_item(item)
 
+    # Parsed response output item model type
+    if item := (
+        _return_parsed_response_output_item_model(data)
+        if isinstance(data, pydantic.BaseModel)
+        else None
+    ):
+        return message_from_response_output_item(item)
+
     # Response input item model type
     if isinstance(data, ResponseInputItemModels):
         return message_from_response_input_item(
@@ -114,6 +129,14 @@ def message_from_any(
         except pydantic.ValidationError:
             pass  # Not a ResponseOutputItem
 
+        try:
+            parsed_response_output_item = (
+                ParsedResponseOutputItemAdapter.validate_python(data)
+            )
+            return message_from_response_output_item(parsed_response_output_item)
+        except pydantic.ValidationError:
+            pass  # Not a ParsedResponseOutputItem
+
     raise ValueError(f"Unsupported message type: {type(data).__name__}")
 
 
@@ -122,5 +145,14 @@ def _return_response_output_item_model(
 ) -> ResponseOutputItem | None:
     try:
         return ResponseOutputItemAdapter.validate_json(data.model_dump_json())
+    except pydantic.ValidationError:
+        return None
+
+
+def _return_parsed_response_output_item_model(
+    data: pydantic.BaseModel,
+) -> ParsedResponseOutputItem | None:
+    try:
+        return ParsedResponseOutputItemAdapter.validate_json(data.model_dump_json())
     except pydantic.ValidationError:
         return None

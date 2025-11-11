@@ -2,6 +2,12 @@ import json
 import typing
 
 import pydantic
+from openai.types.responses.parsed_response import (
+    ParsedResponseFunctionToolCall,
+    ParsedResponseOutputItem,
+    ParsedResponseOutputMessage,
+    ParsedResponseOutputText,
+)
 from openai.types.responses.response_code_interpreter_tool_call import (
     ResponseCodeInterpreterToolCall,
 )
@@ -41,8 +47,28 @@ from str_message import (
 McpListToolsToolAdapter = pydantic.TypeAdapter(typing.List[McpListToolsTool])
 
 
-def message_from_response_output_item(data: ResponseOutputItem) -> MessageTypes:
-    if isinstance(data, ResponseOutputMessage):
+def message_from_response_output_item(
+    data: ResponseOutputItem | ParsedResponseOutputItem,
+) -> MessageTypes:
+
+    if isinstance(data, ParsedResponseOutputMessage):
+        return AssistantMessage(
+            id=data.id,
+            content="\n\n".join(
+                c.text if isinstance(c, ParsedResponseOutputText) else c.refusal
+                for c in data.content
+            ),
+        )
+
+    elif isinstance(data, ParsedResponseFunctionToolCall):
+        return ToolCallMessage(
+            id=data.call_id,
+            tool_call_id=data.call_id,
+            tool_name=data.name,
+            tool_call_arguments=data.arguments,
+        )
+
+    elif isinstance(data, ResponseOutputMessage):
         return AssistantMessage(
             id=data.id,
             content="\n\n".join(

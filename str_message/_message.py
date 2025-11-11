@@ -17,6 +17,7 @@ from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.chat.chat_completion_message_param import ChatCompletionMessageParam
 from openai.types.completion_usage import CompletionUsage
 from openai.types.responses.easy_input_message import EasyInputMessage
+from openai.types.responses.parsed_response import ParsedResponseOutputItem
 from openai.types.responses.response_code_interpreter_tool_call import (
     ResponseCodeInterpreterToolCall,
 )
@@ -107,6 +108,9 @@ ResponseInputItemModels = (
 )
 ResponseInputItemAdapter = pydantic.TypeAdapter[ResponseInputItem](ResponseInputItem)
 ResponseOutputItemAdapter = pydantic.TypeAdapter[ResponseOutputItem](ResponseOutputItem)
+ParsedResponseOutputItemAdapter = pydantic.TypeAdapter[ParsedResponseOutputItem](
+    ParsedResponseOutputItem
+)
 
 
 CONTENT_TEXT_TYPE = "text"
@@ -193,7 +197,13 @@ class MessageUtils(abc.ABC):
 
     @classmethod
     def from_any(
-        cls, data: ANY_MESSAGE_TYPES | ChatCompletion | ResponseOutputItem
+        cls,
+        data: (
+            ANY_MESSAGE_TYPES
+            | ChatCompletion
+            | ResponseOutputItem
+            | ParsedResponseOutputItem
+        ),
     ) -> "Message":
         """Create message from various input types."""
         from str_message.utils.message_from_any import message_from_any
