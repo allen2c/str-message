@@ -1,3 +1,4 @@
+import logging
 import typing
 
 import durl
@@ -16,6 +17,8 @@ from str_message import (
     ResponseInputItemModels,
     ResponseOutputItemAdapter,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def message_from_any(
@@ -137,7 +140,7 @@ def message_from_any(
         except pydantic.ValidationError:
             pass  # Not a ParsedResponseOutputItem
 
-    raise ValueError(f"Unsupported message type: {type(data).__name__}")
+    raise ValueError(f"Unsupported message type: {type(data).__name__}, data: {data}")
 
 
 def _return_response_output_item_model(
