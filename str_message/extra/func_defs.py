@@ -1,4 +1,5 @@
 import datetime
+import logging
 import zoneinfo
 
 import pydantic
@@ -6,6 +7,8 @@ from openai.types.shared.function_definition import FunctionDefinition
 from str_or_none import str_or_none
 
 from str_message.types.func_def import FuncDef
+
+logger = logging.getLogger(__name__)
 
 
 def func_def_get_current_time() -> FuncDef:
@@ -21,6 +24,7 @@ def func_def_get_current_time() -> FuncDef:
 
     async def get_current_time(arguments: Arguments | str) -> str:
         """Get the current time"""
+        logger.info(f"Calling `get_current_time` with arguments: {arguments}")
         arguments = (
             Arguments.model_validate_json(arguments)
             if not isinstance(arguments, Arguments)
@@ -50,6 +54,7 @@ def func_def_get_current_weather() -> FuncDef:
 
     async def get_current_weather(arguments: Arguments | str) -> str:
         """Get the weather of the city"""
+        logger.info(f"Calling `get_current_weather` with arguments: {arguments}")
         arguments = (
             Arguments.model_validate_json(arguments)
             if not isinstance(arguments, Arguments)
