@@ -2,7 +2,7 @@ import openai
 from rich.console import Console
 
 from str_message import Conversation, Message, UserMessage
-from str_message.utils.might_reasoning import might_reasoning
+from str_message.utils.might_reasoning import might_reasoning_param
 from str_message.utils.might_temperature import might_temperature
 
 MODEL = "gpt-5-nano"
@@ -30,7 +30,7 @@ def test_oai(console: Console):
             input=input_messages,
             model=MODEL,
             temperature=might_temperature(MODEL, 0.0),
-            reasoning=might_reasoning(MODEL, "low"),
+            reasoning=might_reasoning_param(MODEL, "low"),
             timeout=10.0,
         )
         console.print(f"[{idx}] response:")

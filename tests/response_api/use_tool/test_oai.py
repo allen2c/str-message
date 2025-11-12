@@ -7,7 +7,7 @@ from rich.console import Console
 
 from str_message import Conversation, Message, ToolCallOutputMessage, UserMessage
 from str_message.types.func_def import FuncDef
-from str_message.utils.might_reasoning import might_reasoning
+from str_message.utils.might_reasoning import might_reasoning_param
 from str_message.utils.might_temperature import might_temperature
 from str_message.utils.safe_pop import safe_pop
 
@@ -57,7 +57,7 @@ async def test_oai(console: Console, func_defs: typing.Dict[str, FuncDef]):
                 model=MODEL,
                 tools=[f.response_tool_param for f in func_defs.values()],
                 temperature=might_temperature(MODEL, 0.0),
-                reasoning=might_reasoning(MODEL, "low"),
+                reasoning=might_reasoning_param(MODEL, "low"),
                 timeout=10.0,
             )
             console.print(f"[{idx}] response:")
