@@ -26,7 +26,7 @@ async def test_oai(console: Console):
         input_messages = Message.to_chat_cmpl_input_messages(conv.messages)
         console.print(f"[{idx}] input_messages:")
         console.print(input_messages)
-        console.print()
+        console.print("")
 
         async with client.chat.completions.stream(
             model=MODEL,
@@ -45,7 +45,7 @@ async def test_oai(console: Console):
         response = await stream.get_final_completion()
         console.print(f"[{idx}] response:")
         console.print(response)
-        console.print()
+        console.print("")
 
         conv.add_message(Message.from_any(response))
         if response.usage:
@@ -53,7 +53,7 @@ async def test_oai(console: Console):
 
         console.print(f"[{idx}] conversation:")
         console.print(conv)
-        console.print()
+        console.print("")
 
     console.print(f"total cost: {conv.total_cost}")
 

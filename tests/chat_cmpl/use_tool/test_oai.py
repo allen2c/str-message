@@ -52,7 +52,7 @@ async def test_oai(console: Console, func_defs: typing.Dict[str, FuncDef]):
             input_messages = Message.to_chat_cmpl_input_messages(conv.messages)
             console.print(f"[{idx}] input_messages:")
             console.print(input_messages)
-            console.print()
+            console.print("")
 
             response = await client.chat.completions.create(
                 model=MODEL,
@@ -64,7 +64,7 @@ async def test_oai(console: Console, func_defs: typing.Dict[str, FuncDef]):
             )
             console.print(f"[{idx}] response:")
             console.print(response)
-            console.print()
+            console.print("")
 
             if response.usage:
                 conv.add_usage(
@@ -79,7 +79,7 @@ async def test_oai(console: Console, func_defs: typing.Dict[str, FuncDef]):
 
     console.print(f"[{idx}] conversation:")
     console.print(conv)
-    console.print()
+    console.print("")
     console.print(f"total cost: {conv.total_cost}")
 
     return None  # test done

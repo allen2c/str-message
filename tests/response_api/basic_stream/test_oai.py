@@ -26,7 +26,7 @@ async def test_oai(console: Console):
         input_messages = conv.response_input_param
         console.print(f"[{idx}] input_messages:")
         console.print(input_messages)
-        console.print()
+        console.print("")
 
         stream_manager = client.responses.stream(
             input=input_messages,
@@ -44,7 +44,7 @@ async def test_oai(console: Console):
         response = await stream.get_final_response()
         console.print(f"[{idx}] response:")
         console.print(response)
-        console.print()
+        console.print("")
 
         for item in response.output:
             conv.add_message(Message.from_any(item))
@@ -54,7 +54,7 @@ async def test_oai(console: Console):
 
         console.print(f"[{idx}] conversation:")
         console.print(conv)
-        console.print()
+        console.print("")
 
     console.print(f"total cost: {conv.total_cost}")
 

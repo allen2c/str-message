@@ -244,6 +244,40 @@ class MessageUtils(abc.ABC):
     def content_to_parts(cls, content: str) -> list[ContentPart]:
         return ContentPart.from_str(content)
 
+    @classmethod
+    def ensure_reasoning_following_items(
+        cls, messages: list["Message"]
+    ) -> list["Message"]:
+        """
+        To solve OpenAI error: Item 'rs_xxx' of type 'reasoning' was provided
+        without its required following item.
+        """
+        if not messages:
+            return messages
+
+        remove_ids: list[str] = []
+
+        for idx, msg in enumerate(messages):
+            if isinstance(msg, ReasoningMessage):
+                if len(messages) < idx + 1:
+                    logger.warning(
+                        f"Removing reasoning message {msg.id} "
+                        + "because it is the last message"
+                    )
+                    remove_ids.append(msg.id)
+                    continue
+                # Must be before assistant message else remove it
+                if not isinstance(messages[idx + 1], AssistantMessage):
+                    logger.warning(
+                        f"Removing reasoning message {msg.id} "
+                        + "because it is not before assistant message"
+                    )
+                    remove_ids.append(msg.id)
+                    continue
+
+        messages[:] = [msg for msg in messages if msg.id not in remove_ids]
+        return messages
+
     @property
     def content_parts(self) -> list[ContentPart]:
         return self.content_to_parts(self.content)
@@ -483,3 +517,6 @@ class Conversation(pydantic.BaseModel):
             valid_usage.annotations = annotations
 
         self.usages.append(valid_usage)
+
+    def clean_messages(self) -> None:
+        self.messages = Message.ensure_reasoning_following_items(self.messages)
