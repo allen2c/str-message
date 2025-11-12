@@ -25,14 +25,14 @@ async def test_oai(console: Console):
     for idx, user_say in enumerate[str](user_says):
         conv.add_message(UserMessage(content=user_say))
 
+        tools: list[ToolParam] = [aws_knowledge_mcp_param]
+
         input_messages = Message.to_response_input_param(conv.messages)
         console.print(f"[{idx}] input_messages:")
         console.print(input_messages)
         console.print("")
 
-        tools: list[ToolParam] = [aws_knowledge_mcp_param]
-
-        response = await client.responses.create(
+        stream_manager = client.responses.stream(
             input=input_messages,
             model=MODEL,
             tools=tools,
@@ -40,6 +40,12 @@ async def test_oai(console: Console):
             reasoning=might_reasoning(MODEL, "low"),
             timeout=10.0,
         )
+        async with stream_manager as stream:
+            async for chunk in stream:
+                if chunk.type == "response.output_text.delta":
+                    console.print(chunk.delta, style="hot_pink", end="")
+
+        response = await stream.get_final_response()
         console.print(f"[{idx}] response:")
         console.print(response)
         console.print("")
