@@ -255,6 +255,7 @@ def message_from_response_output_item(
             id=data.id,
             content=data.output or str(data.error or ""),
             mcp_call_id=data.id,
+            mcp_call_server_label=data.server_label,
             mcp_call_name=data.name,
             mcp_call_arguments=data.arguments,
         )
@@ -262,8 +263,11 @@ def message_from_response_output_item(
     elif isinstance(data, McpListTools):
         return McpListToolsMessage(
             id=data.id,
-            content=str(data.error or "")
-            or McpListToolsToolAdapter.dump_json(data.tools).decode("utf-8"),
+            content=str(data.error or ""),
+            mcp_server_label=data.server_label,
+            mcp_tools=McpListToolsToolAdapter.validate_json(
+                McpListToolsToolAdapter.dump_json(data.tools)
+            ),
         )
 
     elif isinstance(data, McpApprovalRequest):

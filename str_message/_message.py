@@ -53,7 +53,10 @@ from openai.types.responses.response_input_item import (
 )
 from openai.types.responses.response_input_item_param import ResponseInputItemParam
 from openai.types.responses.response_input_param import ResponseInputParam
-from openai.types.responses.response_output_item import ResponseOutputItem
+from openai.types.responses.response_output_item import (
+    McpListToolsTool,
+    ResponseOutputItem,
+)
 from openai.types.responses.response_output_message import ResponseOutputMessage
 from openai.types.responses.response_reasoning_item import ResponseReasoningItem
 from openai.types.responses.response_usage import (
@@ -416,8 +419,9 @@ class McpCallMessage(Message):
     role: typing.Literal["mcp"] = "mcp"
     content: str = ""
     channel: typing.Literal["commentary"] = "commentary"
-    mcp_call_id: str = pydantic.Field(default="")
-    mcp_call_name: str = pydantic.Field(default="")
+    mcp_call_id: str
+    mcp_call_server_label: str
+    mcp_call_name: str
     mcp_call_arguments: str = "{}"
 
     @pydantic.model_validator(mode="after")
@@ -435,6 +439,8 @@ class McpListToolsMessage(Message):
     role: typing.Literal["mcp_list_tools"] = "mcp_list_tools"
     content: str = ""
     channel: typing.Literal["commentary"] = "commentary"
+    mcp_server_label: str
+    mcp_tools: typing.List[McpListToolsTool] = pydantic.Field(default_factory=list)
 
 
 MessageTypes: typing.TypeAlias = typing.Union[

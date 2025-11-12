@@ -13,6 +13,9 @@ from openai.types.responses.response_input_audio_param import (
 from openai.types.responses.response_input_image_param import ResponseInputImageParam
 from openai.types.responses.response_input_item_param import (
     FunctionCallOutput,
+    McpCall,
+    McpListTools,
+    McpListToolsTool,
     ResponseInputItemParam,
 )
 from openai.types.responses.response_input_param import (
@@ -42,6 +45,8 @@ from str_message import (
     CONTENT_TEXT_TYPE,
     AssistantMessage,
     DeveloperMessage,
+    McpCallMessage,
+    McpListToolsMessage,
     Message,
     ReasoningMessage,
     SystemMessage,
@@ -170,6 +175,28 @@ def messages_gen_response_input_param(
                 summary=summary,
                 type="reasoning",
                 content=content,
+            )
+
+        elif isinstance(message, McpCallMessage):
+            yield McpCall(
+                id=message.mcp_call_id,
+                arguments=message.mcp_call_arguments,
+                name=message.mcp_call_name,
+                server_label=message.mcp_call_server_label,
+                type="mcp_call",
+                output=message.content,
+            )
+
+        elif isinstance(message, McpListToolsMessage):
+            yield McpListTools(
+                id=message.id,
+                server_label=message.mcp_server_label,
+                tools=[
+                    McpListToolsTool(**json.loads(tool.model_dump_json()))
+                    for tool in message.mcp_tools
+                ],
+                type="mcp_list_tools",
+                error=message.content or None,
             )
 
         else:
