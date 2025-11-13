@@ -1,6 +1,3 @@
-import typing
-
-import pydantic
 import uuid_utils as uuid
 from openai.types.responses.easy_input_message import EasyInputMessage
 from openai.types.responses.response_function_tool_call import ResponseFunctionToolCall
@@ -8,18 +5,20 @@ from openai.types.responses.response_input_item import (
     FunctionCallOutput,
     McpCall,
     McpListTools,
-    McpListToolsTool,
 )
 from openai.types.responses.response_input_item import Message as ResponseInputMessage
 from openai.types.responses.response_input_item import (
     ResponseInputItem,
 )
+from openai.types.responses.response_output_item import McpListToolsTool
 from openai.types.responses.response_output_message import ResponseOutputMessage
 from openai.types.responses.response_reasoning_item import ResponseReasoningItem
 
 from str_message import (
     AssistantMessage,
     DeveloperMessage,
+    McpCallMessage,
+    McpListToolsMessage,
     Message,
     MessageTypes,
     ReasoningMessage,
@@ -106,24 +105,27 @@ def message_from_response_input_item(data: ResponseInputItem) -> MessageTypes:
         )
 
     elif isinstance(data, McpListTools):
-        return ToolCallMessage(
-            id=data.id or str(uuid.uuid7()),
-            role="assistant",
-            content=pydantic.TypeAdapter(typing.List[McpListToolsTool])
-            .dump_json(data.tools)
-            .decode("utf-8"),
-            tool_call_id=data.id,
-            tool_name="mcp_list_tools",
+        return McpListToolsMessage(
+            id=data.id,
+            mcp_server_label=data.server_label,
+            mcp_tools=[
+                McpListToolsTool(
+                    input_schema=t.input_schema,
+                    name=t.name,
+                    annotations=t.annotations,
+                    description=t.description,
+                )
+                for t in data.tools
+            ],
         )
 
     elif isinstance(data, McpCall):
-        return ToolCallMessage(
-            id=data.id or str(uuid.uuid7()),
-            role="assistant",
-            content=data.output or str(data.error or ""),
-            tool_call_id=data.id,
-            tool_name=f"mcp_call:{data.name}",
-            tool_call_arguments=data.arguments,
+        return McpCallMessage(
+            id=data.id,
+            mcp_call_id=data.id,
+            mcp_call_server_label=data.server_label,
+            mcp_call_name=data.name,
+            mcp_call_arguments=data.arguments,
         )
 
     else:

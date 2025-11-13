@@ -363,7 +363,9 @@ class Message(pydantic.BaseModel, MessageUtils):
     id: str = pydantic.Field(default_factory=lambda: str(uuid.uuid4()))
 
     # Required fields
-    role: typing.Literal["user", "assistant", "system", "developer", "tool"]
+    role: typing.Literal[
+        "user", "assistant", "system", "developer", "tool", "mcp", "mcp_list_tools"
+    ]
     """
     Role 'user' is for user input.
     Role 'assistant' is for assistant output or assistant tool call.
@@ -390,6 +392,8 @@ class Message(pydantic.BaseModel, MessageUtils):
     def warning_empty(self) -> typing.Self:
         if not self.content:
             if self.role == "assistant" and self.channel == "commentary":
+                pass
+            elif self.role in ("mcp", "mcp_list_tools"):
                 pass
             else:
                 logger.warning("Message content is empty")
