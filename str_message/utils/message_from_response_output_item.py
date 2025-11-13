@@ -39,6 +39,7 @@ from str_message import (
     AssistantMessage,
     McpCallMessage,
     McpListToolsMessage,
+    Message,
     MessageTypes,
     ReasoningMessage,
     ToolCallMessage,
@@ -61,6 +62,7 @@ def message_from_response_output_item(
         )
 
     elif isinstance(data, ParsedResponseFunctionToolCall):
+        Message.set_tool_call(data.call_id, data)
         return ToolCallMessage(
             id=data.call_id,
             tool_call_id=data.call_id,
@@ -86,6 +88,7 @@ def message_from_response_output_item(
         )
 
     elif isinstance(data, ResponseFunctionToolCall):
+        Message.set_tool_call(data.call_id, data)
         return ToolCallMessage(
             id=data.call_id,
             tool_call_id=data.call_id,

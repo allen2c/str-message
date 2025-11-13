@@ -13,7 +13,12 @@ import openai_usage
 import pydantic
 import uuid_utils as uuid
 from openai.types.chat.chat_completion import ChatCompletion
-from openai.types.chat.chat_completion_message import ChatCompletionMessage
+from openai.types.chat.chat_completion_message import (
+    ChatCompletionMessage,
+)
+from openai.types.chat.chat_completion_message import (
+    FunctionCall as ChatCompletionFunctionCall,
+)
 from openai.types.chat.chat_completion_message_param import ChatCompletionMessageParam
 from openai.types.completion_usage import CompletionUsage
 from openai.types.responses.easy_input_message import EasyInputMessage
@@ -198,6 +203,11 @@ class MessageUtils(abc.ABC):
     created_at: int
     metadata: typing.Optional[typing.Dict[str, str]]
 
+    # Class variables
+    _call_id_to_tool_calls: typing.ClassVar[
+        typing.Dict[str, ChatCompletionFunctionCall | ResponseFunctionToolCall]
+    ] = {}
+
     @classmethod
     def from_any(
         cls,
@@ -273,13 +283,34 @@ class MessageUtils(abc.ABC):
                 if not isinstance(messages[idx + 1], AssistantMessage):
                     logger.warning(
                         f"Removing reasoning message {msg.id} "
-                        + "because it is not before assistant message"
+                        + "because it is not with correct following item"
                     )
                     remove_ids.append(msg.id)
                     continue
 
         messages[:] = [msg for msg in messages if msg.id not in remove_ids]
         return messages
+
+    @classmethod
+    def set_tool_call(
+        cls,
+        call_id: str,
+        tool_call: ChatCompletionFunctionCall | ResponseFunctionToolCall,
+    ) -> None:
+        logger.info(
+            f"Setting tool call '{call_id}' with value: {tool_call.model_dump_json()}"
+        )
+        cls._call_id_to_tool_calls[call_id] = tool_call
+
+    @classmethod
+    def get_tool_call(
+        cls, call_id: str
+    ) -> ChatCompletionFunctionCall | ResponseFunctionToolCall | None:
+        might_tool_call = cls._call_id_to_tool_calls.get(call_id)
+        if might_tool_call is None:
+            logger.warning(f"Tool call '{call_id}' not found! Please set it first!")
+            return None
+        return might_tool_call
 
     @property
     def content_parts(self) -> list[ContentPart]:

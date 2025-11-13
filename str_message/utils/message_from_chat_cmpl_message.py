@@ -1,9 +1,14 @@
 import typing
 
 import uuid_utils as uuid
-from openai.types.chat.chat_completion_message import ChatCompletionMessage
+from openai.types.chat.chat_completion_message import (
+    ChatCompletionMessage,
+)
+from openai.types.chat.chat_completion_message import (
+    FunctionCall as ChatCompletionFunctionCall,
+)
 
-from str_message import AssistantMessage, ReasoningMessage, ToolCallMessage
+from str_message import AssistantMessage, Message, ReasoningMessage, ToolCallMessage
 
 
 def message_from_chat_cmpl_message(
@@ -16,6 +21,13 @@ def message_from_chat_cmpl_message(
     if data.tool_calls:
         _tool_call = data.tool_calls[0]  # Only one tool call is supported
         if _tool_call.type == "function":
+            Message.set_tool_call(
+                _tool_call.id,
+                ChatCompletionFunctionCall(
+                    name=_tool_call.function.name,
+                    arguments=_tool_call.function.arguments,
+                ),
+            )
             return ToolCallMessage(
                 id=msg_id,
                 role="assistant",

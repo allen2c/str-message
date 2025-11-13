@@ -20,6 +20,7 @@ from openai.types.responses.response_reasoning_item import ResponseReasoningItem
 from str_message import (
     AssistantMessage,
     DeveloperMessage,
+    Message,
     MessageTypes,
     ReasoningMessage,
     SystemMessage,
@@ -66,6 +67,7 @@ def message_from_response_input_item(data: ResponseInputItem) -> MessageTypes:
             raise ValueError(f"Unsupported role: {data.role}")
 
     elif isinstance(data, ResponseFunctionToolCall):
+        Message.set_tool_call(data.call_id, data)
         return ToolCallMessage(
             id=data.id or str(uuid.uuid7()),
             role="assistant",
@@ -76,11 +78,24 @@ def message_from_response_input_item(data: ResponseInputItem) -> MessageTypes:
         )
 
     elif isinstance(data, FunctionCallOutput):
+        _tool_call = Message.get_tool_call(data.call_id)
+        _tool_name = (
+            _tool_call.name
+            if _tool_call is not None
+            else "__can_not_tracing_tool_call__"
+        )
+        _tool_call_arguments = (
+            _tool_call.arguments
+            if _tool_call is not None
+            else "__can_not_tracing_tool_call_arguments__"
+        )
         return ToolCallOutputMessage(
             id=data.id or str(uuid.uuid7()),
             role="tool",
             content=response_input_content_to_str(data.output),
             tool_call_id=data.call_id,
+            tool_name=_tool_name,
+            tool_call_arguments=_tool_call_arguments,
         )
 
     elif isinstance(data, ResponseReasoningItem):
