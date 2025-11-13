@@ -217,11 +217,21 @@ class MessageUtils(abc.ABC):
             | ResponseOutputItem
             | ParsedResponseOutputItem
         ),
+        *,
+        verbose: bool = False,
+        **kwargs,
     ) -> "Message":
         """Create message from various input types."""
         from str_message.utils.message_from_any import message_from_any
 
-        return message_from_any(data)
+        final = message_from_any(data)
+        if verbose:
+            raw_repr = pretty_repr(data, indent_size=0, max_string=16).replace("\n", "")
+            final_repr = pretty_repr(final, indent_size=0, max_string=16).replace(
+                "\n", ""
+            )
+            logger.debug(f"Message from {raw_repr} to {final_repr}")
+        return final
 
     @classmethod
     def to_chat_cmpl_input_messages(

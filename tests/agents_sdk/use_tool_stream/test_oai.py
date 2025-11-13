@@ -72,6 +72,8 @@ async def test_oai(console: Console, func_defs: typing.Dict[str, FuncDef]):
         console.print(conv)
         console.print("")
 
+        conv.clean_messages()
+
     console.print(f"total cost: {conv.total_cost}")
 
     return None  # test done
