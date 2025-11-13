@@ -28,7 +28,7 @@ def message_from_any(
         | ResponseOutputItem
         | ParsedResponseOutputItem
     ),
-) -> MessageTypes:
+) -> typing.List[MessageTypes]:
     """Convert various data types into Message objects."""
     from str_message.types.chat_completion_messages import (
         ChatCompletionMessage as ChatCompletionInputMessage,
@@ -54,15 +54,15 @@ def message_from_any(
 
     # Message type
     if isinstance(data, Message):
-        return data
+        return [data]
 
     # String type
     if isinstance(data, str):
-        return Message(role="user", content=data)
+        return [Message(role="user", content=data)]
 
     # Data URL type
     if isinstance(data, durl.DataURL):
-        return Message(role="user", content=str(data))
+        return [Message(role="user", content=str(data))]
 
     # Chat completion model type
     if isinstance(data, ChatCompletion):

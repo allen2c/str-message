@@ -223,7 +223,7 @@ class MessageUtils(abc.ABC):
         *,
         verbose: bool = False,
         **kwargs,
-    ) -> "Message":
+    ) -> typing.List["MessageTypes"]:
         """Create message from various input types."""
         from str_message.utils.message_from_any import message_from_any
 
@@ -541,8 +541,11 @@ class Conversation(pydantic.BaseModel):
     def response_input_param(self) -> ResponseInputParam:
         return Message.to_response_input_param(self.messages)
 
-    def add_message(self, message: MessageTypes) -> None:
-        self.messages.append(message)
+    def add_message(self, message: MessageTypes | typing.List[MessageTypes]) -> None:
+        if isinstance(message, typing.List):
+            self.messages.extend(message)
+        else:
+            self.messages.append(message)
 
     def add_usage(
         self,

@@ -1,3 +1,5 @@
+import typing
+
 from openai.types.chat.chat_completion_message import (
     FunctionCall as ChatCompletionFunctionCall,
 )
@@ -29,15 +31,15 @@ from str_message.types.chat_completion_messages import (
 
 def message_from_chat_cmpl_input_message(
     data: ChatCompletionInputMessage,
-) -> MessageTypes:
+) -> typing.List[MessageTypes]:
     if isinstance(data, ChatCompletionDeveloperMessage):
-        return DeveloperMessage(content=data.str_content())
+        return [DeveloperMessage(content=data.str_content())]
 
     elif isinstance(data, ChatCompletionSystemMessage):
-        return SystemMessage(content=data.str_content())
+        return [SystemMessage(content=data.str_content())]
 
     elif isinstance(data, ChatCompletionUserMessage):
-        return UserMessage(content=data.str_content())
+        return [UserMessage(content=data.str_content())]
 
     elif isinstance(data, ChatCompletionAssistantMessage):
         if data.tool_calls:
@@ -50,28 +52,34 @@ def message_from_chat_cmpl_input_message(
                         arguments=_tool_call.function.arguments,
                     ),
                 )
-                return ToolCallMessage(
-                    content=(
-                        f"[tool_call:{_tool_call.function.name}](#{_tool_call.id}):{_tool_call.function.arguments}"  # noqa: E501
-                    ),
-                    tool_call_id=_tool_call.id,
-                    tool_name=_tool_call.function.name,
-                    tool_call_arguments=_tool_call.function.arguments,
-                )
+                return [
+                    ToolCallMessage(
+                        content=(
+                            f"[tool_call:{_tool_call.function.name}](#{_tool_call.id}):{_tool_call.function.arguments}"  # noqa: E501
+                        ),
+                        tool_call_id=_tool_call.id,
+                        tool_name=_tool_call.function.name,
+                        tool_call_arguments=_tool_call.function.arguments,
+                    )
+                ]
             else:
                 raise ValueError(f"Unsupported tool call type: {_tool_call.type}")
         else:
-            return AssistantMessage(content=data.str_content())
+            return [AssistantMessage(content=data.str_content())]
 
     elif isinstance(data, ChatCompletionToolMessage):
-        return ToolCallOutputMessage(
-            content=data.str_content(), tool_call_id=data.tool_call_id
-        )
+        return [
+            ToolCallOutputMessage(
+                content=data.str_content(), tool_call_id=data.tool_call_id
+            )
+        ]
 
     elif isinstance(data, ChatCompletionFunctionMessage):
-        return ToolCallOutputMessage(
-            content=data.str_content(), tool_call_id="__fake_id__"
-        )
+        return [
+            ToolCallOutputMessage(
+                content=data.str_content(), tool_call_id="__fake_id__"
+            )
+        ]
 
     else:
         raise ValueError(f"Unsupported message type: {type(data).__name__}")

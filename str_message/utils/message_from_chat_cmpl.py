@@ -3,16 +3,12 @@ import typing
 from openai.types.chat.chat_completion import ChatCompletion, Choice
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 
-from str_message import (
-    AssistantMessage,
-    ReasoningMessage,
-    ToolCallMessage,
-)
+from str_message import MessageTypes
 
 
 def message_from_chat_cmpl(
     data: ChatCompletion,
-) -> AssistantMessage | ReasoningMessage | ToolCallMessage:
+) -> typing.List[MessageTypes]:
     from str_message.utils.message_from_chat_cmpl_message import (
         message_from_chat_cmpl_message,
     )

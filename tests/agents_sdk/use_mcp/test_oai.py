@@ -55,7 +55,7 @@ async def test_oai(console: Console):
         console.print("")
 
         conv.messages[:] = [
-            Message.from_any(item) for item in run_result.to_input_list()
+            m for item in run_result.to_input_list() for m in Message.from_any(item)
         ]
 
         if usage := run_result.context_wrapper.usage:
