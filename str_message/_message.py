@@ -7,6 +7,7 @@ import typing
 import zoneinfo
 
 import agents
+import cachetools
 import durl
 import jinja2
 import openai_usage
@@ -204,9 +205,11 @@ class MessageUtils(abc.ABC):
     metadata: typing.Optional[typing.Dict[str, str]]
 
     # Class variables
-    _call_id_to_tool_calls: typing.ClassVar[
-        typing.Dict[str, ChatCompletionFunctionCall | ResponseFunctionToolCall]
-    ] = {}
+    _call_id_to_tool_calls: cachetools.TTLCache[
+        str, ChatCompletionFunctionCall | ResponseFunctionToolCall
+    ] = cachetools.TTLCache(
+        maxsize=1000, ttl=60 * 60  # 1 hour
+    )
 
     @classmethod
     def from_any(
