@@ -7,7 +7,7 @@ from str_message import Conversation, Message, SystemMessage, UserMessage
 from str_message.utils.might_reasoning import might_reasoning_effort
 from str_message.utils.might_temperature import might_temperature
 
-MODEL = "gemini-2.5-flash"
+MODEL = "claude-haiku-4-5"
 
 user_says: list[str] = [
     "why grass is green?",
@@ -15,10 +15,10 @@ user_says: list[str] = [
 ]
 
 
-def test_gg(console: Console):
+def test_an(console: Console):
     client = openai.OpenAI(
-        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-        api_key=os.environ.get("GEMINI_API_KEY"),
+        base_url="https://api.anthropic.com/v1/",
+        api_key=os.environ.get("ANTHROPIC_API_KEY"),
     )
 
     conv = Conversation()
@@ -45,7 +45,7 @@ def test_gg(console: Console):
 
         conv.add_message(Message.from_any(response))
         if response.usage:
-            conv.add_usage(response.usage, model=MODEL, annotations=f"test_gg.{idx}")
+            conv.add_usage(response.usage, model=MODEL, annotations=f"test_an.{idx}")
 
         console.print(f"[{idx}] conversation:")
         console.print(conv)
