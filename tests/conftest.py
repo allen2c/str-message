@@ -1,11 +1,15 @@
 # tests/conftest.py
+import logging
 import typing
 
+import logging_bullet_train as lbt
 import pytest
 import rich.console
 
 import str_message.patches.patch_openai
 from str_message.types.func_def import FuncDef
+
+lbt.set_logger("str_message", level=logging.DEBUG)
 
 str_message.patches.patch_openai.patch_openai()
 
