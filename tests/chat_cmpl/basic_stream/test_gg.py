@@ -1,12 +1,14 @@
+import os
+
 import openai
 import pytest
 from rich.console import Console
 
-from str_message import Conversation, Message, UserMessage
+from str_message import Conversation, Message, SystemMessage, UserMessage
 from str_message.utils.might_reasoning import might_reasoning_effort
 from str_message.utils.might_temperature import might_temperature
 
-MODEL = "gpt-5-nano"
+MODEL = "gemini-2.5-flash"
 
 user_says: list[str] = [
     "why grass is green?",
@@ -16,9 +18,13 @@ user_says: list[str] = [
 
 @pytest.mark.asyncio
 async def test_oai(console: Console):
-    client = openai.AsyncOpenAI()
+    client = openai.AsyncOpenAI(
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        api_key=os.environ.get("GEMINI_API_KEY"),
+    )
 
     conv = Conversation()
+    conv.add_message(SystemMessage(content="You are a taciturn assistant."))
 
     for idx, user_say in enumerate[str](user_says):
         conv.add_message(UserMessage(content=user_say))
@@ -34,6 +40,7 @@ async def test_oai(console: Console):
             temperature=might_temperature(MODEL, 0.0),
             reasoning_effort=might_reasoning_effort(MODEL, "low"),
             timeout=10.0,
+            stream_options={"include_usage": True},
         ) as stream:
             counter: int = 0
             async for chunk in stream:
@@ -49,7 +56,7 @@ async def test_oai(console: Console):
 
         conv.add_message(Message.from_any(response))
         if response.usage:
-            conv.add_usage(response.usage, model=MODEL, annotations=f"test_oai.{idx}")
+            conv.add_usage(response.usage, model=MODEL, annotations=f"test_gg.{idx}")
 
         console.print(f"[{idx}] conversation:")
         console.print(conv)

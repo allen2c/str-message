@@ -570,6 +570,9 @@ class Conversation(pydantic.BaseModel):
         if model:
             valid_usage.model = model
             valid_usage.cost = valid_usage.estimate_cost_str()
+        else:
+            logger.warning(f"Can not find model '{model}' card")
+
         if annotations:
             valid_usage.annotations = annotations
 

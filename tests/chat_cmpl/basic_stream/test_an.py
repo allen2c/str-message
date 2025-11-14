@@ -1,12 +1,14 @@
+import os
+
 import openai
 import pytest
 from rich.console import Console
 
-from str_message import Conversation, Message, UserMessage
+from str_message import Conversation, Message, SystemMessage, UserMessage
 from str_message.utils.might_reasoning import might_reasoning_effort
 from str_message.utils.might_temperature import might_temperature
 
-MODEL = "gpt-5-nano"
+MODEL = "claude-haiku-4-5"
 
 user_says: list[str] = [
     "why grass is green?",
@@ -16,9 +18,13 @@ user_says: list[str] = [
 
 @pytest.mark.asyncio
 async def test_oai(console: Console):
-    client = openai.AsyncOpenAI()
+    client = openai.AsyncOpenAI(
+        base_url="https://api.anthropic.com/v1/",
+        api_key=os.environ.get("ANTHROPIC_API_KEY"),
+    )
 
     conv = Conversation()
+    conv.add_message(SystemMessage(content="You are a taciturn assistant."))
 
     for idx, user_say in enumerate[str](user_says):
         conv.add_message(UserMessage(content=user_say))
@@ -33,6 +39,7 @@ async def test_oai(console: Console):
             messages=input_messages,
             temperature=might_temperature(MODEL, 0.0),
             reasoning_effort=might_reasoning_effort(MODEL, "low"),
+            stream_options={"include_usage": True},
             timeout=10.0,
         ) as stream:
             counter: int = 0
