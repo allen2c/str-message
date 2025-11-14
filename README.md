@@ -4,6 +4,31 @@ Any Message Could be a String, for LLM Usage.
 
 A universal message format that seamlessly works with OpenAI's Chat Completion API, Response API, and Agents SDK. Supports multi-turn conversations, tools, and MCP (Model Context Protocol).
 
+## Compatibility Matrix
+
+| Feature                     | OpenAI | Gemini | Anthropic | Groq |
+|-----------------------------|--------|--------|-----------|------|
+| ChatCompletion/Basic        | ✅      | ✅      | ✅         | ✅    |
+| ChatCompletion/Basic Stream | ✅      | ✅      | ✅         | ✅    |
+| ChatCompletion/Tool         | ✅      | ✅      | ✅         | ✅    |
+| ChatCompletion/Tool Stream  | ✅      | ✅      | ✅         | ✅    |
+| ChatCompletion/Audio        | ✅      | ❌      | ❌         | ❌    |
+| ChatCompletion/Image        | ✅      | ❌      | ❌         | ❌    |
+| Response/Basic              | ✅      | ❌      | ❌         | ✅    |
+| Response/Basic Stream       | ✅      | ❌      | ❌         | ✅    |
+| Response/Tool               | ✅      | ✅      | ✅         | ❌    |
+| Response/Tool Stream        | ✅      | ✅      | ✅         | ❌    |
+| Response/MCP                | ✅      | ❌      | ❌         | ❌    |
+| Response/MCP Stream         | ✅      | ❌      | ❌         | ❌    |
+| Response/Image              | ✅      | ❌      | ❌         | ❌    |
+| Agents/Basic                | ✅      | ✅      | ✅         | ✅    |
+| Agents/Basic Stream         | ✅      | ✅      | ✅         | ✅    |
+| Agents/Tool                 | ✅      | ✅      | ✅         | ✅    |
+| Agents/Tool Stream          | ✅      | ✅      | ✅         | ✅    |
+| Agents/MCP                  | ✅      | ❌      | ❌         | ✅    |
+| Agents/MCP Stream           | ✅      | ❌      | ❌         | ✅    |
+| Agents/Image                | ✅      | ❌      | ❌         | ❌    |
+
 ## Installation
 
 ```bash
