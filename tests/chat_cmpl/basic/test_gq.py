@@ -3,7 +3,7 @@ import os
 import openai
 from rich.console import Console
 
-from str_message import Conversation, Message, UserMessage
+from str_message import Conversation, Message, SystemMessage, UserMessage
 from str_message.utils.might_reasoning import might_reasoning_effort
 from str_message.utils.might_temperature import might_temperature
 
@@ -22,6 +22,7 @@ def test_gq(console: Console):
     )
 
     conv = Conversation()
+    conv.add_message(SystemMessage(content="You are a taciturn assistant."))
 
     for idx, user_say in enumerate[str](user_says):
         conv.add_message(UserMessage(content=user_say))

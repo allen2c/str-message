@@ -56,7 +56,7 @@ async def test_oai(console: Console):
 
         conv.add_message(Message.from_any(response))
         if response.usage:
-            conv.add_usage(response.usage, model=MODEL, annotations=f"test_oai.{idx}")
+            conv.add_usage(response.usage, model=MODEL, annotations=f"test_an.{idx}")
 
         console.print(f"[{idx}] conversation:")
         console.print(conv)
