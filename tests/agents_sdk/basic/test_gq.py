@@ -1,3 +1,5 @@
+import os
+
 import agents
 import openai
 import pytest
@@ -7,7 +9,7 @@ from str_message import Conversation, Message, UserMessage
 from str_message.utils.might_reasoning import might_reasoning
 from str_message.utils.might_temperature import might_temperature
 
-MODEL = "gpt-5-nano"
+MODEL = "openai/gpt-oss-120b"
 
 user_says: list[str] = [
     "why grass is green?",
@@ -16,13 +18,19 @@ user_says: list[str] = [
 
 
 @pytest.mark.asyncio
-async def test_oai(console: Console):
+async def test_gq(console: Console):
+    openai_client = openai.AsyncOpenAI(
+        base_url="https://api.groq.com/openai/v1",
+        api_key=os.environ.get("GROQ_API_KEY"),
+    )
+    model_object = agents.OpenAIChatCompletionsModel(
+        model=MODEL,
+        openai_client=openai_client,
+    )
+
     agent = agents.Agent[dict](
         "test_oai",
-        model=agents.OpenAIResponsesModel(
-            model=MODEL,
-            openai_client=openai.AsyncOpenAI(),
-        ),
+        model=model_object,
         model_settings=agents.ModelSettings(
             temperature=might_temperature(MODEL, 0.0, default=None),
             reasoning=might_reasoning(MODEL, "low", default=None),
