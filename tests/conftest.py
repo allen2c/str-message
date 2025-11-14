@@ -7,6 +7,7 @@ import typing
 import logging_bullet_train as lbt
 import openai
 import pytest
+import requests
 import rich.console
 
 import str_message.patches.patch_openai
@@ -67,3 +68,14 @@ def sample_audio() -> pathlib.Path:
     )
     sample_audio_path.write_bytes(response.content)
     return sample_audio_path
+
+
+@pytest.fixture(scope="module")
+def sample_image() -> pathlib.Path:
+    sample_image_path = pathlib.Path("tests/data/sample_image.jpg")
+
+    url = "https://picsum.photos/200/300"
+    response = requests.get(url)
+    response.raise_for_status()
+    sample_image_path.write_bytes(response.content)
+    return sample_image_path

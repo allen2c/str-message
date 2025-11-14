@@ -337,6 +337,14 @@ class MessageUtils(abc.ABC):
         self.content = self.content.strip()
         return self
 
+    def add_image(
+        self, image: str | bytes, mime_type: durl.IMAGE_MIME_TYPES
+    ) -> typing.Self:
+        data_url = durl.DataURL.from_data(mime_type, image)
+        self.content += "\n\n" + str(CONTENT_IMAGE_URL_EXPR.format(image_url=data_url))
+        self.content = self.content.strip()
+        return self
+
     def to_instructions(
         self,
         *,
