@@ -329,6 +329,14 @@ class MessageUtils(abc.ABC):
     def content_parts(self) -> list[ContentPart]:
         return self.content_to_parts(self.content)
 
+    def add_audio(
+        self, audio: str | bytes, mime_type: durl.AUDIO_MIME_TYPES
+    ) -> typing.Self:
+        data_url = durl.DataURL.from_data(mime_type, audio)
+        self.content += "\n\n" + str(CONTENT_AUDIO_EXPR.format(input_audio=data_url))
+        self.content = self.content.strip()
+        return self
+
     def to_instructions(
         self,
         *,

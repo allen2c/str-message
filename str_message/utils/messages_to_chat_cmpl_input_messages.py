@@ -1,5 +1,6 @@
 import typing
 
+import durl
 from openai.types.chat.chat_completion_assistant_message_param import (
     Audio as ChatCompletionAssistantMessageAudioParam,
 )
@@ -79,7 +80,8 @@ def messages_gen_chat_cmpl_input_messages(
                             ChatCompletionContentPartInputAudioParam(
                                 type="input_audio",
                                 input_audio=InputAudio(
-                                    data=content_part.value, format="wav"
+                                    data=durl.DataURL.from_url(content_part.value).data,
+                                    format="wav",
                                 ),
                             )
                         ],

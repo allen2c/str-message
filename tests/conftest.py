@@ -1,8 +1,11 @@
 # tests/conftest.py
 import logging
+import pathlib
+import textwrap
 import typing
 
 import logging_bullet_train as lbt
+import openai
 import pytest
 import rich.console
 
@@ -31,3 +34,36 @@ def func_defs() -> typing.Dict[str, FuncDef]:
         "get_current_time": func_def_get_current_time(),
         "get_current_weather": func_def_get_current_weather(),
     }
+
+
+@pytest.fixture(scope="module")
+def sample_audio() -> pathlib.Path:
+    sample_audio_path = pathlib.Path("tests/data/sample_audio.wav")
+
+    if sample_audio_path.is_file():
+        return sample_audio_path
+
+    sample_audio_path.parent.mkdir(parents=True, exist_ok=True)
+
+    openai_client = openai.OpenAI()
+    response = openai_client.audio.speech.create(
+        model="gpt-4o-mini-tts",
+        input="Hello, my name is Coral.",
+        voice="coral",
+        instructions=textwrap.dedent(
+            """
+            Affect/personality: A cheerful guide
+
+            Tone: Friendly, clear, and reassuring, creating a calm atmosphere and making the listener feel confident and comfortable.
+
+            Pronunciation: Clear, articulate, and steady, ensuring each instruction is easily understood while maintaining a natural, conversational flow.
+
+            Pause: Brief, purposeful pauses after key instructions (e.g., "cross the street" and "turn right") to allow time for the listener to process the information and follow along.
+
+            Emotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.
+            """  # noqa: E501
+        ).strip(),
+        response_format="wav",
+    )
+    sample_audio_path.write_bytes(response.content)
+    return sample_audio_path
