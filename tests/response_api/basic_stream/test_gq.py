@@ -1,6 +1,7 @@
 import os
 
 import openai
+import pytest
 from rich.console import Console
 
 from str_message import Conversation, Message, SystemMessage, UserMessage
@@ -15,8 +16,9 @@ user_says: list[str] = [
 ]
 
 
-def test_gq(console: Console):
-    client = openai.OpenAI(
+@pytest.mark.asyncio
+async def test_gq(console: Console):
+    client = openai.AsyncOpenAI(
         base_url="https://api.groq.com/openai/v1",
         api_key=os.environ.get("GROQ_API_KEY"),
     )
@@ -32,19 +34,26 @@ def test_gq(console: Console):
         console.print(input_messages)
         console.print("")
 
-        response = client.responses.create(
+        stream_manager = client.responses.stream(
             input=input_messages,
             model=MODEL,
             temperature=might_temperature(MODEL, 0.0),
             reasoning=might_reasoning_param(MODEL, "low"),
             timeout=10.0,
         )
+
+        async with stream_manager as stream:
+            async for chunk in stream:
+                if chunk.type == "response.output_text.delta":
+                    console.print(chunk.delta, style="hot_pink", end="")
+
+        response = await stream.get_final_response()
         console.print(f"[{idx}] response:")
         console.print(response)
         console.print("")
 
-        for m in response.output:
-            conv.add_message(Message.from_any(m))
+        for item in response.output:
+            conv.add_message(Message.from_any(item))
 
         if response.usage:
             conv.add_usage(response.usage, model=MODEL, annotations=f"test_oai.{idx}")
