@@ -87,7 +87,7 @@ async def test_oai_harmony(console: Console, func_defs: typing.Dict[str, FuncDef
     console.print(RichText("[final] harmony:"))
     console.print(
         RichText(
-            Message.to_harmony(
+            Message.to_harmony_str(
                 conv.messages,
                 [f.func_def for f in func_defs.values()],
             )

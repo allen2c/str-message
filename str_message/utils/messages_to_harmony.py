@@ -1,4 +1,5 @@
 # https://cookbook.openai.com/articles/openai-harmony
+import json
 import logging
 import typing
 from datetime import datetime, timezone
@@ -45,7 +46,7 @@ def messages_to_harmony(
     reasoning_effort: ReasoningEffort = ReasoningEffort.HIGH,
     conversation_start_date: str | None = None,
     tools: typing.List[FunctionDefinition] | None = None,
-) -> str:
+) -> typing.Dict:
     harmony_messages: typing.List[HarmonyMessage] = []
 
     system_message = (
@@ -138,6 +139,26 @@ def messages_to_harmony(
         developer_message.with_function_tools(tools_descriptions)
 
     harmony_conversation = Conversation.from_messages(harmony_messages)
+
+    return json.loads(json.dumps(harmony_conversation.to_dict()))
+
+
+def messages_to_harmony_str(
+    messages: typing.List[MessageTypes],
+    *,
+    reasoning_effort: ReasoningEffort = ReasoningEffort.HIGH,
+    conversation_start_date: str | None = None,
+    tools: typing.List[FunctionDefinition] | None = None,
+) -> str:
+
+    harmony_conversation_dict = messages_to_harmony(
+        messages,
+        reasoning_effort=reasoning_effort,
+        conversation_start_date=conversation_start_date,
+        tools=tools,
+    )
+    harmony_conversation = Conversation.from_json(json.dumps(harmony_conversation_dict))
+
     tokens = harmony_encoding.render_conversation(harmony_conversation)
 
     harmony_prompt = tiktoken_encoding.decode(tokens)

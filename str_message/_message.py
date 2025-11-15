@@ -330,10 +330,23 @@ class MessageUtils(abc.ABC):
         cls,
         messages: typing.Union[list["Message"], "Message"],
         tools: typing.List[FunctionDefinition] | None = None,
-    ) -> str:
+    ) -> dict:
         from str_message.utils.messages_to_harmony import messages_to_harmony
 
         return messages_to_harmony(
+            [messages] if isinstance(messages, Message) else messages,
+            tools=tools,
+        )
+
+    @classmethod
+    def to_harmony_str(
+        cls,
+        messages: typing.Union[list["Message"], "Message"],
+        tools: typing.List[FunctionDefinition] | None = None,
+    ) -> str:
+        from str_message.utils.messages_to_harmony import messages_to_harmony_str
+
+        return messages_to_harmony_str(
             [messages] if isinstance(messages, Message) else messages,
             tools=tools,
         )
