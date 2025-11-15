@@ -64,9 +64,10 @@ def messages_to_harmony(
         HarmonyMessage.from_role_and_content(Role.DEVELOPER, developer_message)
     )
 
+    tools_descriptions: typing.List[ToolDescription] = []
     for tool in tools or []:
-        developer_message.with_function_tools(
-            [ToolDescription.new(tool.name, tool.description or "", tool.parameters)]
+        tools_descriptions.append(
+            ToolDescription.new(tool.name, tool.description or "", tool.parameters)
         )
 
     for m in messages:
@@ -107,14 +108,12 @@ def messages_to_harmony(
 
         elif isinstance(m, McpListToolsMessage):
             for mcp_tool in m.mcp_tools:
-                developer_message.with_function_tools(
-                    [
-                        ToolDescription.new(
-                            mcp_tool.name,
-                            mcp_tool.description or "",
-                            mcp_tool.input_schema,  # type: ignore
-                        )
-                    ]
+                tools_descriptions.append(
+                    ToolDescription.new(
+                        mcp_tool.name,
+                        mcp_tool.description or "",
+                        mcp_tool.input_schema,  # type: ignore
+                    )
                 )
 
         elif isinstance(m, McpCallMessage):
@@ -134,6 +133,9 @@ def messages_to_harmony(
 
         else:
             logger.warning(f"Unsupported message type: {type(m)}")
+
+    if tools_descriptions:
+        developer_message.with_function_tools(tools_descriptions)
 
     harmony_conversation = Conversation.from_messages(harmony_messages)
     tokens = harmony_encoding.render_conversation(harmony_conversation)

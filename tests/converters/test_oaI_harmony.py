@@ -23,7 +23,7 @@ user_says: list[str] = [
 
 
 @pytest.mark.asyncio
-async def test_oaI_harmony(console: Console, func_defs: typing.Dict[str, FuncDef]):
+async def test_oai_harmony(console: Console, func_defs: typing.Dict[str, FuncDef]):
     openai_client = openai.AsyncOpenAI()
     model_obj = agents.OpenAIResponsesModel(
         model=MODEL,
@@ -74,7 +74,7 @@ async def test_oaI_harmony(console: Console, func_defs: typing.Dict[str, FuncDef
         ]
 
         if usage := run_result.context_wrapper.usage:
-            conv.add_usage(usage, model=MODEL, annotations=f"test_oai.{idx}")
+            conv.add_usage(usage, model=MODEL, annotations=f"test_oai_harmony.{idx}")
 
         console.print(f"[{idx}] conversation:")
         console.print(conv)
@@ -85,7 +85,14 @@ async def test_oaI_harmony(console: Console, func_defs: typing.Dict[str, FuncDef
     console.print(f"total cost: {conv.total_cost}\n")
 
     console.print(RichText("[final] harmony:"))
-    console.print(RichText(conv.harmony))
+    console.print(
+        RichText(
+            Message.to_harmony(
+                conv.messages,
+                [f.func_def for f in func_defs.values()],
+            )
+        )
+    )
     console.print("")
 
     return None  # test done
