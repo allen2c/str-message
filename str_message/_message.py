@@ -325,6 +325,14 @@ class MessageUtils(abc.ABC):
             return None
         return might_tool_call
 
+    @classmethod
+    def to_harmony(cls, messages: typing.Union[list["Message"], "Message"]) -> str:
+        from str_message.utils.messages_to_harmony import messages_to_harmony
+
+        return messages_to_harmony(
+            [messages] if isinstance(messages, Message) else messages
+        )
+
     @property
     def content_parts(self) -> list[ContentPart]:
         return self.content_to_parts(self.content)
@@ -556,6 +564,10 @@ class Conversation(pydantic.BaseModel):
     @property
     def response_input_param(self) -> ResponseInputParam:
         return Message.to_response_input_param(self.messages)
+
+    @property
+    def harmony(self) -> str:
+        return Message.to_harmony(self.messages)
 
     def add_message(self, message: MessageTypes | typing.List[MessageTypes]) -> None:
         if isinstance(message, typing.List):

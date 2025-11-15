@@ -139,4 +139,9 @@ def messages_to_harmony(
     tokens = harmony_encoding.render_conversation(harmony_conversation)
 
     harmony_prompt = tiktoken_encoding.decode(tokens)
-    return harmony_prompt
+
+    return (
+        harmony_prompt.replace("<|end|>", "<|end|>\n")
+        .replace("<|call|>", "<|call|>\n")
+        .strip()
+    )
