@@ -12,7 +12,7 @@ from str_message.types.func_def import FuncDef
 from str_message.utils.might_reasoning import might_reasoning
 from str_message.utils.might_temperature import might_temperature
 
-MODEL = "gpt-5-nano"
+MODEL = "gpt-5-nano"  # TODO: to plain reasoning model provider
 
 user_says: list[str] = [
     "why grass is green?",

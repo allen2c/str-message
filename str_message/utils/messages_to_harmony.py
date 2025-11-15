@@ -164,7 +164,7 @@ def messages_to_harmony_str(
     harmony_prompt = tiktoken_encoding.decode(tokens)
 
     return (
-        harmony_prompt.replace("<|end|>", "<|end|>\n")
-        .replace("<|call|>", "<|call|>\n")
+        harmony_prompt.replace("<|end|>", "<|end|>\n\n")
+        .replace("<|call|>", "<|call|>\n\n")
         .strip()
     )
