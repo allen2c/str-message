@@ -121,23 +121,6 @@ ParsedResponseOutputItemAdapter = pydantic.TypeAdapter[ParsedResponseOutputItem]
     ParsedResponseOutputItem
 )
 
-
-CONTENT_TEXT_TYPE = "text"
-CONTENT_AUDIO_TYPE = "input_audio"
-CONTENT_IMAGE_URL_TYPE = "image_url"
-CONTENT_IMAGE_ID_TYPE = "image_id"
-CONTENT_FILE_ID_TYPE = "file_id"
-CONTENT_FILE_URL_TYPE = "file_url"
-CONTENT_FILE_FILENAME_TYPE = "file_filename"
-ALL_CONTENT_TYPES = (
-    CONTENT_TEXT_TYPE,
-    CONTENT_AUDIO_TYPE,
-    CONTENT_IMAGE_URL_TYPE,
-    CONTENT_IMAGE_ID_TYPE,
-    CONTENT_FILE_ID_TYPE,
-    CONTENT_FILE_URL_TYPE,
-    CONTENT_FILE_FILENAME_TYPE,
-)
 CONTENT_TYPE: typing.TypeAlias = typing.Union[
     typing.Literal[
         "text",
@@ -150,6 +133,23 @@ CONTENT_TYPE: typing.TypeAlias = typing.Union[
     ],
     str,
 ]
+CONTENT_TEXT_TYPE = "text"
+CONTENT_AUDIO_TYPE = "input_audio"
+CONTENT_IMAGE_URL_TYPE = "image_url"
+CONTENT_IMAGE_ID_TYPE = "image_id"
+CONTENT_FILE_ID_TYPE = "file_id"
+CONTENT_FILE_URL_TYPE = "file_url"
+CONTENT_FILE_FILENAME_TYPE = "file_filename"
+ALL_CONTENT_TYPES: typing.Tuple[CONTENT_TYPE, ...] = (
+    CONTENT_TEXT_TYPE,
+    CONTENT_AUDIO_TYPE,
+    CONTENT_IMAGE_URL_TYPE,
+    CONTENT_IMAGE_ID_TYPE,
+    CONTENT_FILE_ID_TYPE,
+    CONTENT_FILE_URL_TYPE,
+    CONTENT_FILE_FILENAME_TYPE,
+)
+
 
 CONTENT_AUDIO_EXPR = r"@![input_audio]({input_audio})"
 CONTENT_IMAGE_URL_EXPR = r"@![image_url]({image_url})"
@@ -324,6 +324,43 @@ class MessageUtils(abc.ABC):
             logger.warning(f"Tool call '{call_id}' not found! Please set it first!")
             return None
         return might_tool_call
+
+    @classmethod
+    def to_harmony(
+        cls,
+        messages: typing.Union[list["Message"], "Message"],
+        tools: typing.List[FunctionDefinition] | None = None,
+    ) -> dict:
+        from str_message.utils.messages_to_harmony import messages_to_harmony
+
+        return messages_to_harmony(
+            [messages] if isinstance(messages, Message) else messages,
+            tools=tools,
+        )
+
+    @classmethod
+    def to_harmony_str(
+        cls,
+        messages: typing.Union[list["Message"], "Message"],
+        tools: typing.List[FunctionDefinition] | None = None,
+    ) -> str:
+        from str_message.utils.messages_to_harmony import messages_to_harmony_str
+
+        return messages_to_harmony_str(
+            [messages] if isinstance(messages, Message) else messages,
+            tools=tools,
+        )
+
+    @classmethod
+    def to_sharegpt(
+        cls,
+        messages: typing.Union[list["Message"], "Message"],
+    ) -> dict:
+        from str_message.utils.messages_to_sharegpt import messages_to_sharegpt
+
+        return messages_to_sharegpt(
+            [messages] if isinstance(messages, Message) else messages,
+        )
 
     @property
     def content_parts(self) -> list[ContentPart]:

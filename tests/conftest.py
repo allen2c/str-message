@@ -74,6 +74,11 @@ def sample_audio() -> pathlib.Path:
 def sample_image() -> pathlib.Path:
     sample_image_path = pathlib.Path("tests/data/sample_image.jpg")
 
+    if sample_image_path.is_file():
+        return sample_image_path
+
+    sample_image_path.parent.mkdir(parents=True, exist_ok=True)
+
     url = "https://picsum.photos/200/300"
     response = requests.get(url)
     response.raise_for_status()
