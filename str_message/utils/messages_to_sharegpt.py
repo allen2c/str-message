@@ -78,10 +78,9 @@ def messages_to_sharegpt(
                     audio_bytes = audio_data_url.data_decoded_bytes
                     audio_filename = (
                         f"{hashlib.md5(audio_bytes).hexdigest()}"
-                        + f".{durl.ExtensionMIMEType[audio_data_url.mime_type]}"
+                        + f".{durl.MIMETypeExtension[audio_data_url.mime_type]}"
                     )
                     audio_filepath = media_dir.joinpath(audio_filename)
-                    audio_filepath.mkdir(parents=True, exist_ok=True)
                     audio_filepath.write_bytes(audio_bytes)
                     output_messages.append({role_tag: user_tag, content_tag: "<audio>"})
                     output_audios.append(str(audio_filepath))
@@ -95,10 +94,9 @@ def messages_to_sharegpt(
                         image_bytes = image_data_url.data_decoded_bytes
                     image_filename = (
                         f"{hashlib.md5(image_bytes).hexdigest()}"
-                        + f".{durl.ExtensionMIMEType[image_data_url.mime_type]}"
+                        + f".{durl.MIMETypeExtension[image_data_url.mime_type]}"
                     )
                     image_filepath = media_dir.joinpath(image_filename)
-                    image_filepath.mkdir(parents=True, exist_ok=True)
                     image_filepath.write_bytes(image_bytes)
                     output_messages.append({role_tag: user_tag, content_tag: "<image>"})
                     output_images.append(str(image_filepath))
