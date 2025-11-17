@@ -351,6 +351,17 @@ class MessageUtils(abc.ABC):
             tools=tools,
         )
 
+    @classmethod
+    def to_sharegpt(
+        cls,
+        messages: typing.Union[list["Message"], "Message"],
+    ) -> dict:
+        from str_message.utils.messages_to_sharegpt import messages_to_sharegpt
+
+        return messages_to_sharegpt(
+            [messages] if isinstance(messages, Message) else messages,
+        )
+
     @property
     def content_parts(self) -> list[ContentPart]:
         return self.content_to_parts(self.content)
