@@ -6,8 +6,24 @@ import typing
 
 import durl
 import pydantic
+import requests
 from openai.types.shared.function_definition import FunctionDefinition
 from rich.pretty import pretty_repr
+
+from str_message import (
+    CONTENT_AUDIO_TYPE,
+    CONTENT_IMAGE_URL_TYPE,
+    CONTENT_TEXT_TYPE,
+    AssistantMessage,
+    DeveloperMessage,
+    McpCallMessage,
+    McpListToolsMessage,
+    ReasoningMessage,
+    SystemMessage,
+    ToolCallMessage,
+    ToolCallOutputMessage,
+    UserMessage,
+)
 
 if typing.TYPE_CHECKING:
     from str_message import MessageTypes
@@ -47,101 +63,107 @@ def messages_to_sharegpt(
 
     # Handle message content
     for msg in messages:
-        if msg.role in ("system", "developer"):
+        if isinstance(msg, (SystemMessage, DeveloperMessage)):
             output_messages.append({role_tag: system_tag, content_tag: msg.content})
-        elif msg.role == "user":
-            if durl.DataURL.is_data_url(msg.content):
-                _content_data_url = durl.DataURL.from_url(msg.content)
-                if _content_data_url.is_audio_content:
-                    __content_bytes = (
-                        _content_data_url.data_decoded.encode("utf-8")
-                        if isinstance(_content_data_url.data_decoded, str)
-                        else _content_data_url.data_decoded
+
+        elif isinstance(msg, UserMessage):
+            for content in msg.content_parts:
+                if content.type in (CONTENT_TEXT_TYPE,):
+                    output_messages.append(
+                        {role_tag: user_tag, content_tag: content.value}
                     )
-                    __content_md5 = hashlib.md5(__content_bytes).hexdigest()
-                    __ext = {mime: ext for ext, mime in durl.ExtensionMIMEType.items()}[
-                        _content_data_url.mime_type
-                    ]
-                    __content_file_name = f"{__content_md5}.{__ext}"
-                    __content_path = media_dir.joinpath(__content_file_name)
-                    __content_path.write_bytes(__content_bytes)
+
+                elif content.type in (CONTENT_AUDIO_TYPE,):
+                    audio_data_url = durl.DataURL.from_url(content.value)
+                    audio_bytes = audio_data_url.data_decoded_bytes
+                    audio_filename = (
+                        f"{hashlib.md5(audio_bytes).hexdigest()}"
+                        + f".{durl.ExtensionMIMEType[audio_data_url.mime_type]}"
+                    )
+                    audio_filepath = media_dir.joinpath(audio_filename)
+                    audio_filepath.mkdir(parents=True, exist_ok=True)
+                    audio_filepath.write_bytes(audio_bytes)
                     output_messages.append({role_tag: user_tag, content_tag: "<audio>"})
-                    output_audios.append(str(__content_path))
-                elif _content_data_url.is_image_content:
-                    __content_bytes = (
-                        _content_data_url.data_decoded.encode("utf-8")
-                        if isinstance(_content_data_url.data_decoded, str)
-                        else _content_data_url.data_decoded
+                    output_audios.append(str(audio_filepath))
+
+                elif content.type in (CONTENT_IMAGE_URL_TYPE,):
+                    image_data_url = durl.DataURL.from_url(content.value)
+                    if image_data_url.data.startswith("http"):
+                        response = requests.get(image_data_url.data)
+                        response.raise_for_status()
+                    else:
+                        image_bytes = image_data_url.data_decoded_bytes
+                    image_filename = (
+                        f"{hashlib.md5(image_bytes).hexdigest()}"
+                        + f".{durl.ExtensionMIMEType[image_data_url.mime_type]}"
                     )
-                    __content_md5 = hashlib.md5(__content_bytes).hexdigest()
-                    __ext = {mime: ext for ext, mime in durl.ExtensionMIMEType.items()}[
-                        _content_data_url.mime_type
-                    ]
-                    __content_file_name = f"{__content_md5}.{__ext}"
-                    __content_path = media_dir.joinpath(__content_file_name)
-                    __content_path.write_bytes(__content_bytes)
+                    image_filepath = media_dir.joinpath(image_filename)
+                    image_filepath.mkdir(parents=True, exist_ok=True)
+                    image_filepath.write_bytes(image_bytes)
                     output_messages.append({role_tag: user_tag, content_tag: "<image>"})
-                    output_images.append(str(__content_path))
-                elif _content_data_url.is_text_content:
-                    output_messages.append(
-                        {
-                            role_tag: user_tag,
-                            content_tag: str(_content_data_url.data_decoded),
-                        }
-                    )
+                    output_images.append(str(image_filepath))
+
                 else:
                     raise ValueError(
-                        "Unsupported data URL: "
-                        + f"{pretty_repr(_content_data_url, max_string=100)}"
+                        "Unsupported content type: "
+                        + f"{content.type}"
+                        + f"{pretty_repr(content.value, max_string=100)}"
                     )
-            else:
-                output_messages.append({role_tag: user_tag, content_tag: msg.content})
-        elif msg.role == "assistant":
-            # Function call
-            if msg.channel == "commentary":
-                if tool_call_arguments := getattr(msg, "tool_call_arguments", None):
-                    output_messages.append(
-                        {
-                            role_tag: function_tag,
-                            content_tag: tool_call_arguments or "{}",
-                        }
-                    )
-                else:
-                    raise ValueError(
-                        "Tool call arguments are required for assistant "
-                        + f"commentary message: {msg}"
-                    )
-            # Assistant answer
-            else:
-                output_messages.append(
-                    {role_tag: assistant_tag, content_tag: msg.content}
-                )
-        elif msg.role == "tool":
+
+        elif isinstance(msg, AssistantMessage):
+            output_messages.append({role_tag: assistant_tag, content_tag: msg.content})
+
+        elif isinstance(msg, ToolCallMessage):
+            output_messages.append(
+                {
+                    role_tag: function_tag,
+                    content_tag: {
+                        "name": msg.tool_name,
+                        "arguments": msg.tool_call_arguments,
+                    },
+                }
+            )
+
+        elif isinstance(msg, ToolCallOutputMessage):
             output_messages.append(
                 {role_tag: observation_tag, content_tag: msg.content}
             )
+
+        elif isinstance(msg, ReasoningMessage):
+            output_messages.append(
+                {role_tag: observation_tag, content_tag: msg.content}
+            )
+
+        elif isinstance(msg, McpCallMessage):
+            output_messages.extend(
+                [
+                    {
+                        role_tag: function_tag,
+                        content_tag: {
+                            "name": msg.mcp_call_name,
+                            "arguments": msg.mcp_call_arguments,
+                        },
+                    },
+                    {role_tag: observation_tag, content_tag: msg.content},
+                ]
+            )
+
+        elif isinstance(msg, McpListToolsMessage):
+            for m in msg.mcp_tools:
+                output_tools.append(
+                    FunctionDefinition(
+                        name=m.name,
+                        description=m.description or "",
+                        parameters=dict(m.input_schema),  # type: ignore
+                    ).model_dump()
+                )
+
         else:
-            logger.warning(f"Not supported role '{msg.role}' in sharegpt format")
+            raise ValueError(f"Unsupported message type: {type(msg)}")
 
     # Handle tools definitions
     if tool_definitions:
         output_tools.extend(ListFunctionDefinitionAdapter.dump_python(tool_definitions))
-    # Try to get tools definitions from messages
-    else:
-        for msg in messages:
-            __meta = msg.metadata or {}
-            __tool_defs_json = __meta.get("dialogue_tools_definitions") or __meta.get(
-                "tools"
-            )
-            if __tool_defs_json:
-                output_tools.extend(
-                    ListFunctionDefinitionAdapter.dump_python(
-                        ListFunctionDefinitionAdapter.validate_json(
-                            str(__tool_defs_json)
-                        )
-                    )
-                )
-                break
 
     if output_tools:
         output[tools_column] = output_tools
